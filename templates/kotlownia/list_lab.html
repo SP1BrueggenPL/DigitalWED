@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Laboratorium – kolejka{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Nadzór nad kotłownią</h1>
+    <div class="doc-number">CD-00001498-2 · Widok Laboratorium</div>
+  </div>
+</div>
+
+<!-- KOLEJKA DO UZUPEŁNIENIA -->
+<div class="card form-section">
+  <div class="card-header">
+    <h3>Do uzupełnienia</h3>
+    {% if pending %}
+    <span class="badge-count">{{ pending|length }}</span>
+    {% endif %}
+  </div>
+  <div class="card-body" style="padding:0">
+    {% if pending %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data formularza</th>
+          <th>Godzina</th>
+          <th>Technik</th>
+          <th>Oczekuje od</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in pending %}
+        <tr style="background:#FFF9E6">
+          <td><strong>{{ f.data|date:"d.m.Y" }}</strong></td>
+          <td>{{ f.godzina|time:"H:i" }}</td>
+          <td>{{ f.technician.get_full_name|default:f.technician.username|default:"—" }}</td>
+          <td style="color:var(--brand-muted);font-size:12px">{{ f.updated_at|date:"d.m.Y H:i" }}</td>
+          <td>
+            <a href="{% url 'kotlownia:etap2' f.pk %}" class="btn btn-primary btn-sm">▶ Uzupełnij Etap 2</a>
+            <a href="{% url 'kotlownia:detail' f.pk %}" class="btn btn-secondary btn-sm">Podgląd</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding:40px;text-align:center;color:var(--brand-muted)">
+      <div style="font-size:28px;margin-bottom:8px">✓</div>
+      <p>Brak formularzy do uzupełnienia.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- HISTORIA ANALIZ -->
+<div class="card">
+  <div class="card-header"><h3>Moje analizy – historia</h3></div>
+  <div class="card-body" style="padding:0">
+    {% if done %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Godzina analiz</th>
+          <th>Technik</th>
+          <th>Zakończono</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for f in done %}
+        <tr>
+          <td>{{ f.data|date:"d.m.Y" }}</td>
+          <td>{{ f.lab_godzina|time:"H:i"|default:"—" }}</td>
+          <td>{{ f.technician.get_full_name|default:f.technician.username|default:"—" }}</td>
+          <td style="color:var(--brand-muted);font-size:12px">{{ f.updated_at|date:"d.m.Y H:i" }}</td>
+          <td>
+            <a href="{% url 'kotlownia:detail' f.pk %}" class="btn btn-secondary btn-sm">Podgląd</a>
+            <a href="{% url 'kotlownia:pdf' f.pk %}" class="btn btn-secondary btn-sm">⬇ PDF</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding:32px;text-align:center;color:var(--brand-muted);font-size:13px">Brak ukończonych analiz.</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

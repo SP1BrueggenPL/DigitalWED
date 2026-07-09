@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+{% block title %}Formularz {{ obj.data|date:"d.m.Y" }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Nadzór nad kotłownią – {{ obj.data|date:"d.m.Y" }}</h1>
+    <div class="doc-number">CD-00001498-2 · {{ obj.godzina|time:"H:i" }}</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    {% if obj.status == 'laboratorium' and can_etap2 %}
+      <a href="{% url 'kotlownia:etap2' obj.pk %}" class="btn btn-primary">▶ Uzupełnij Etap 2</a>
+    {% endif %}
+    {% if obj.status == 'zakonczony' %}
+      <a href="{% url 'kotlownia:pdf' obj.pk %}" class="btn btn-primary">⬇ Pobierz PDF</a>
+    {% endif %}
+    {% if obj.status != 'zakonczony' and can_etap1 %}
+      <a href="{% url 'kotlownia:etap1' obj.pk %}" class="btn btn-secondary">✏ Edytuj Etap 1</a>
+    {% endif %}
+    <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Lista</a>
+  </div>
+</div>
+
+<!-- STATUS -->
+<div class="etap-bar" style="margin-bottom:28px">
+  <div class="etap-step {% if obj.status != 'techniczny' %}done{% else %}active{% endif %}">
+    <div class="etap-dot {% if obj.status != 'techniczny' %}etap-dot--done{% endif %}">
+      {% if obj.status != 'techniczny' %}✓{% else %}1{% endif %}
+    </div>
+    <div class="etap-label">Dział Techniczny</div>
+  </div>
+  <div class="etap-line {% if obj.status == 'zakonczony' %}etap-line--done{% endif %}"></div>
+  <div class="etap-step {% if obj.status == 'zakonczony' %}done{% elif obj.status == 'laboratorium' %}active{% endif %}">
+    <div class="etap-dot {% if obj.status == 'zakonczony' %}etap-dot--done{% elif obj.status == 'techniczny' %}etap-dot--pending{% endif %}">
+      {% if obj.status == 'zakonczony' %}✓{% else %}2{% endif %}
+    </div>
+    <div class="etap-label {% if obj.status == 'techniczny' %}etap-label--muted{% endif %}">Laboratorium</div>
+  </div>
+</div>
+
+<!-- DZIAŁ TECHNICZNY -->
+<div class="card form-section">
+  <div class="card-header"><span class="section-id">DZIAŁ TECHNICZNY</span></div>
+  <div class="card-body">
+    <div class="detail-grid">
+      <div class="detail-field">
+        <div class="detail-label">Technik</div>
+        <div class="detail-value">{{ obj.technician.get_full_name|default:obj.technician.username|default:"—" }}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Data / Godzina</div>
+        <div class="detail-value">{{ obj.data|date:"d.m.Y" }} · {{ obj.godzina|time:"H:i" }}</div>
+      </div>
+    </div>
+    {% if obj.podpis_techniczny %}
+    <div class="detail-field" style="margin-top:12px">
+      <div class="detail-label">Podpis</div>
+      <img src="{{ obj.podpis_techniczny }}" class="sig-preview" alt="Podpis technika">
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- A. ZAPASY -->
+<div class="card form-section">
+  <div class="card-header"><span class="section-id">A</span><h3>Kontrola stanu zapasów surowców technicznych</h3></div>
+  <div class="card-body">
+    <div class="detail-grid">
+      <div>
+        <p class="subsection-label">Woda miejska</p>
+        <div class="detail-field"><div class="detail-label">Pomieszczenie socjalne [m³]</div><div class="detail-value">{{ obj.woda_socjalna_m3|default:"—" }}</div></div>
+        <div class="detail-field"><div class="detail-label">Produkcja [m³]</div><div class="detail-value">{{ obj.woda_produkcja_m3|default:"—" }}</div></div>
+      </div>
+      <div>
+        <p class="subsection-label">Olej opałowy</p>
+        <div class="detail-field"><div class="detail-label">Poziom zbiornika [cm]</div><div class="detail-value">{{ obj.olej_poziom_cm|default:"—" }}</div></div>
+        <div class="detail-field"><div class="detail-label">Licznik oleju [litry]</div><div class="detail-value">{{ obj.olej_licznik_litry|default:"—" }}</div></div>
+      </div>
+    </div>
+    <p class="subsection-label" style="margin-top:16px">Gaz</p>
+    <table class="gas-table">
+      <thead><tr><th style="text-align:left">Zbiornik</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Ciśnienie [bar]</td>
+          <td>{{ obj.gaz_cisnienie_1|default:"—" }}</td><td>{{ obj.gaz_cisnienie_2|default:"—" }}</td><td>{{ obj.gaz_cisnienie_3|default:"—" }}</td>
+          <td>{{ obj.gaz_cisnienie_4|default:"—" }}</td><td>{{ obj.gaz_cisnienie_5|default:"—" }}</td><td>{{ obj.gaz_cisnienie_6|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td class="row-label">Wypełnienie [%]</td>
+          <td>{{ obj.gaz_wypelnienie_1|default:"—" }}</td><td>{{ obj.gaz_wypelnienie_2|default:"—" }}</td><td>{{ obj.gaz_wypelnienie_3|default:"—" }}</td>
+          <td>{{ obj.gaz_wypelnienie_4|default:"—" }}</td><td>{{ obj.gaz_wypelnienie_5|default:"—" }}</td><td>{{ obj.gaz_wypelnienie_6|default:"—" }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- B. URZĄDZENIA -->
+<div class="card form-section">
+  <div class="card-header"><span class="section-id">B</span><h3>Nadzór urządzeń kotłowych</h3></div>
+  <div class="card-body" style="padding:0">
+    <table class="form-table">
+      <thead>
+        <tr><th style="width:36px;text-align:center">Lp.</th><th style="width:42%">Kontrola</th><th style="width:18%">Wartość</th><th>Uwagi</th></tr>
+      </thead>
+      <tbody>
+        {% for row in b_rows %}
+        <tr>
+          <td class="b-lp">{{ row.lp }}</td>
+          <td style="font-size:13px">{{ row.label }}</td>
+          <td>{{ row.wartosc|default:"—" }}</td>
+          <td style="font-size:13px;color:var(--brand-muted)">{{ row.uwagi }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr class="section-divider">
+
+<!-- LABORATORIUM -->
+{% if obj.status != 'techniczny' %}
+<div class="card form-section">
+  <div class="card-header"><span class="section-id">LABORATORIUM</span></div>
+  <div class="card-body">
+    <div class="detail-grid">
+      <div class="detail-field">
+        <div class="detail-label">Laborant</div>
+        <div class="detail-value">{% if obj.laborant %}{{ obj.laborant.get_full_name|default:obj.laborant.username }}{% else %}—{% endif %}</div>
+      </div>
+      <div class="detail-field">
+        <div class="detail-label">Godzina analiz</div>
+        <div class="detail-value">{{ obj.lab_godzina|time:"H:i"|default:"—" }}</div>
+      </div>
+    </div>
+    {% if obj.podpis_laboratorium %}
+    <div class="detail-field" style="margin-top:12px">
+      <div class="detail-label">Podpis</div>
+      <img src="{{ obj.podpis_laboratorium }}" class="sig-preview" alt="Podpis laboranta">
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card form-section">
+  <div class="card-header"><span class="section-id">C</span><h3>Analiza laboratoryjna wody</h3></div>
+  <div class="card-body" style="padding:0">
+    <table class="form-table">
+      <thead>
+        <tr><th style="width:14%">Rodzaj</th><th style="width:34%">Oznaczenie</th><th style="width:9%">Jedn.</th><th style="width:15%">Granica toler.</th><th>Wynik pomiaru</th></tr>
+      </thead>
+      <tbody>
+        <tr><td rowspan="6" class="water-type">Woda zasilająca</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">&gt; 9</td><td>{{ obj.wz_ph|default:"—" }}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wz_wapnioce_dh|default:"—" }}</td></tr>
+        <tr><td>Tlen O₂</td><td>mg/l</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wz_tlen_mg|default:"—" }}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.wz_przewodnosc|default:"—" }}</td></tr>
+        <tr><td>Temperatura</td><td>°C</td><td class="tolerance">25 °C</td><td>{{ obj.wz_temperatura|default:"—" }}</td></tr>
+        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wz_wyglad|upper|default:"—" }}</td></tr>
+        <tr><td rowspan="3" class="water-type">Kondensat</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.k_ph|default:"—" }}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.k_wapnioce_dh|default:"—" }}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.k_przewodnosc|default:"—" }}</td></tr>
+        <tr><td rowspan="4" class="water-type">Woda kotłowa</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">10,5–12</td><td>{{ obj.wk_ph|default:"—" }}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wk_wapnioce_dh|default:"—" }}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">30–8000</td><td>{{ obj.wk_przewodnosc|default:"—" }}</td></tr>
+        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wk_wyglad|upper|default:"—" }}</td></tr>
+        <tr><td rowspan="3" class="water-type">Woda po uzdatnianiu</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.wu_ph|default:"—" }}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wu_wapnioce_dh|default:"—" }}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td></td><td>{{ obj.wu_przewodnosc|default:"—" }}</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="padding:24px;text-align:center;color:var(--brand-muted)">
+  <div style="font-size:28px;margin-bottom:8px">🔬</div>
+  <p>Etap 2 (Laboratorium) jeszcze nie został wypełniony.</p>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Dashboard</h1>
+    <div class="doc-number">Dział WED · Cyfryzacja procesów</div>
+  </div>
+</div>
+
+<p style="font-size:14px;color:var(--brand-muted);margin-bottom:24px">
+  Wybierz proces, który chcesz wypełnić lub przeglądać historię wpisów.
+</p>
+
+<div class="process-grid">
+  {% for p in processes %}
+  <a href="{% url p.url %}" class="process-card">
+    <div class="process-card-bar"></div>
+    <div class="process-card-body">
+      <div class="process-card-icon">{{ p.icon }}</div>
+      <div class="process-card-title">{{ p.name }}</div>
+      <div class="process-card-num">{{ p.doc_number }}</div>
+      <div class="process-card-desc">{{ p.description }}</div>
+    </div>
+    <div class="process-card-footer">Otwórz proces →</div>
+  </a>
+  {% endfor %}
+
+  <!-- Placeholder dla przyszłych procesów -->
+  <div class="process-card" style="opacity:0.45;cursor:default;pointer-events:none">
+    <div class="process-card-bar" style="background:var(--brand-border)"></div>
+    <div class="process-card-body">
+      <div class="process-card-icon">📋</div>
+      <div class="process-card-title">Kolejny proces</div>
+      <div class="process-card-num">Planowany</div>
+      <div class="process-card-desc">Nowy formularz zostanie dodany wkrótce.</div>
+    </div>
+    <div class="process-card-footer" style="color:var(--brand-muted)">Wkrótce dostępne</div>
+  </div>
+</div>
+{% endblock %}

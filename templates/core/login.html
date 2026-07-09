@@ -1,0 +1,39 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Logowanie – WED Digital</title>
+  <link rel="stylesheet" href="{% static 'css/brueggen.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text">Brüggen</div>
+    </div>
+    <div class="login-subtitle">H. &amp; J. Brüggen KG · WED Digital Platform</div>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Nazwa użytkownika</label>
+        <input type="text" name="username" class="form-control" autofocus required>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Hasło</label>
+        <input type="password" name="password" class="form-control" required>
+      </div>
+      {% if form.errors %}
+      <div class="alert alert-error" style="margin-bottom:14px">Nieprawidłowa nazwa użytkownika lub hasło.</div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">Zaloguj się</button>
+    </form>
+
+    <hr class="login-divider">
+    <p style="font-size:11px;color:var(--brand-muted);text-align:center">H. & J. Brüggen KG · Dział WED</p>
+  </div>
+</div>
+</body>
+</html>

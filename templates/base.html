@@ -1,0 +1,85 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}WED Digital{% endblock %} – H. &amp; J. Brüggen KG</title>
+  <link rel="stylesheet" href="{% static 'css/brueggen.css' %}">
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a href="{% url 'dashboard' %}" class="topbar-logo">
+    <span class="topbar-title" style="font-size:16px;font-weight:700;color:#fff;letter-spacing:0.3px">WED Digital Platform</span>
+  </a>
+  <div class="topbar-spacer"></div>
+  {% if user.is_authenticated %}
+  <div class="topbar-user">
+    <span>{{ user.get_full_name|default:user.username }}</span>
+    <span>·</span>
+    <a href="{% url 'logout' %}">Wyloguj</a>
+  </div>
+  {% endif %}
+</header>
+
+<!-- SIDEBAR -->
+{% if user.is_authenticated %}
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Nawigacja</div>
+    <a href="{% url 'dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <span class="sidebar-icon">⊞</span> Dashboard
+    </a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Procesy</div>
+    {% if user.is_superuser %}
+    <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
+      <span class="sidebar-icon">🔥</span> Nadzór kotłowni
+    </a>
+    {% else %}
+      {% for g in user.groups.all %}{% if g.name == 'Kotłownia' %}
+    <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
+      <span class="sidebar-icon">🔥</span> Nadzór kotłowni
+    </a>
+      {% endif %}{% endfor %}
+    {% endif %}
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">System</div>
+    {% if user.is_staff or user.groups.all|length > 0 %}
+      {% for g in user.groups.all %}{% if g.name == 'Administratorzy' %}
+      <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user_' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="sidebar-icon">👤</span> Użytkownicy i role
+      </a>
+      {% endif %}{% endfor %}
+      {% if user.is_superuser %}
+      <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user_' in request.resolver_match.url_name %}active{% endif %}">
+        <span class="sidebar-icon">👤</span> Użytkownicy i role
+      </a>
+      {% endif %}
+    {% endif %}
+    <a href="{% url 'logout' %}" class="sidebar-link">
+      <span class="sidebar-icon">↩</span> Wyloguj
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<!-- MAIN -->
+<main class="main">
+  {% if messages %}
+  <div class="messages">
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+</body>
+</html>

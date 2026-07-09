@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Etap 2 – Laboratorium{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Nadzór nad kotłownią</h1>
+    <div class="doc-number">CD-00001498-2 · <strong>Etap 2 – Laboratorium</strong> · {{ obj.data|date:"d.m.Y" }}</div>
+  </div>
+  <a href="{% url 'kotlownia:detail' obj.pk %}" class="btn btn-secondary">← Podgląd</a>
+</div>
+
+<div class="etap-bar">
+  <div class="etap-step done">
+    <div class="etap-dot etap-dot--done">✓</div>
+    <div class="etap-label">Dział Techniczny</div>
+  </div>
+  <div class="etap-line etap-line--done"></div>
+  <div class="etap-step active">
+    <div class="etap-dot">2</div>
+    <div class="etap-label">Laboratorium</div>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <!-- NAGŁÓWEK LABORATORIUM -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">LABORATORIUM</span></div>
+    <div class="card-body">
+      <div class="form-row form-row-2">
+        <div class="form-group">
+          <label>Imię i Nazwisko</label>
+          <input type="text" class="form-control" value="{{ request.user.get_full_name|default:request.user.username }}" disabled>
+        </div>
+        <div class="form-group"><label>Godzina przeprowadzenia analiz *</label>{{ form.lab_godzina }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C. ANALIZA LABORATORYJNA -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">C</span><h3>Analiza laboratoryjna wody</h3></div>
+    <div class="card-body" style="padding:0">
+      <table class="form-table">
+        <thead>
+          <tr>
+            <th style="width:14%">Rodzaj</th>
+            <th style="width:34%">Oznaczenie</th>
+            <th style="width:9%">Jedn.</th>
+            <th style="width:15%">Granica toler.</th>
+            <th>Wynik pomiaru</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Woda zasilająca -->
+          <tr>
+            <td rowspan="6" class="water-type">Woda<br>zasilająca</td>
+            <td>pH (w temp 25°C)</td><td></td><td class="tolerance">&gt; 9</td><td>{{ form.wz_ph }}</td>
+          </tr>
+          <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ form.wz_wapnioce_dh }}</td></tr>
+          <tr><td>Tlen O₂</td><td>mg/l</td><td class="tolerance">&lt; 0,1</td><td>{{ form.wz_tlen_mg }}</td></tr>
+          <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ form.wz_przewodnosc }}</td></tr>
+          <tr><td>Temperatura</td><td>°C</td><td class="tolerance">25 °C</td><td>{{ form.wz_temperatura }}</td></tr>
+          <tr>
+            <td colspan="2">Wygląd <small style="color:var(--brand-muted)">Ok – bezbarwna, klarowna / Nie – mętna</small></td>
+            <td></td>
+            <td>
+              <label class="radio-label"><input type="radio" name="wz_wyglad" value="ok" {% if obj.wz_wyglad == 'ok' %}checked{% endif %}> Ok</label>
+              <label class="radio-label"><input type="radio" name="wz_wyglad" value="nie" {% if obj.wz_wyglad == 'nie' %}checked{% endif %}> Nie</label>
+            </td>
+          </tr>
+          <!-- Kondensat -->
+          <tr>
+            <td rowspan="3" class="water-type">Kondensat</td>
+            <td>pH (w temp 25°C)</td><td></td><td></td><td>{{ form.k_ph }}</td>
+          </tr>
+          <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ form.k_wapnioce_dh }}</td></tr>
+          <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ form.k_przewodnosc }}</td></tr>
+          <!-- Woda kotłowa -->
+          <tr>
+            <td rowspan="4" class="water-type">Woda<br>kotłowa</td>
+            <td>pH (w temp 25°C)</td><td></td><td class="tolerance">10,5–12</td><td>{{ form.wk_ph }}</td>
+          </tr>
+          <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ form.wk_wapnioce_dh }}</td></tr>
+          <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">30–8000</td><td>{{ form.wk_przewodnosc }}</td></tr>
+          <tr>
+            <td colspan="2">Wygląd <small style="color:var(--brand-muted)">Ok – bezbarwna, klarowna / Nie – mętna</small></td>
+            <td></td>
+            <td>
+              <label class="radio-label"><input type="radio" name="wk_wyglad" value="ok" {% if obj.wk_wyglad == 'ok' %}checked{% endif %}> Ok</label>
+              <label class="radio-label"><input type="radio" name="wk_wyglad" value="nie" {% if obj.wk_wyglad == 'nie' %}checked{% endif %}> Nie</label>
+            </td>
+          </tr>
+          <!-- Woda po uzdatnianiu -->
+          <tr>
+            <td rowspan="3" class="water-type">Woda po<br>uzdatnianiu</td>
+            <td>pH (w temp 25°C)</td><td></td><td></td><td>{{ form.wu_ph }}</td>
+          </tr>
+          <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,1</td><td>{{ form.wu_wapnioce_dh }}</td></tr>
+          <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td></td><td>{{ form.wu_przewodnosc }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PODPIS CYFROWY -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">PODPIS</span><h3>Czytelny podpis – Laboratorium</h3></div>
+    <div class="card-body">
+      <p class="sig-hint-text">Podpisz się poniżej palcem lub rysikiem.</p>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas-lab" width="600" height="150" class="sig-canvas"></canvas>
+        <div class="sig-actions">
+          <button type="button" id="sig-clear-lab" class="btn btn-secondary btn-sm">✕ Wyczyść</button>
+          <span class="sig-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+      </div>
+      <input type="hidden" name="podpis_laboratorium_data" id="sig-input-lab" value="{{ obj.podpis_laboratorium|default:'' }}">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+    <a href="{% url 'kotlownia:detail' obj.pk %}" class="btn btn-secondary">Anuluj</a>
+    <button type="submit" class="btn btn-primary">✓ Zatwierdź i zakończ formularz</button>
+  </div>
+</form>
+
+<script src="{% static 'js/signature.js' %}"></script>
+<script>initSignaturePad('sig-canvas-lab', 'sig-input-lab', 'sig-clear-lab');</script>
+{% endblock %}

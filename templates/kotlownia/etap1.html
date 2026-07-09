@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Etap 1 – Dział Techniczny{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Nadzór nad kotłownią</h1>
+    <div class="doc-number">CD-00001498-2 · <strong>Etap 1 – Dział Techniczny</strong></div>
+  </div>
+  <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Wróć</a>
+</div>
+
+<div class="etap-bar">
+  <div class="etap-step active">
+    <div class="etap-dot">1</div>
+    <div class="etap-label">Dział Techniczny</div>
+  </div>
+  <div class="etap-line"></div>
+  <div class="etap-step">
+    <div class="etap-dot etap-dot--pending">2</div>
+    <div class="etap-label etap-label--muted">Laboratorium</div>
+  </div>
+</div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <!-- NAGŁÓWEK -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">DZIAŁ TECHNICZNY</span></div>
+    <div class="card-body">
+      <div class="form-row form-row-3">
+        <div class="form-group">
+          <label>Imię i Nazwisko</label>
+          <input type="text" class="form-control" value="{{ request.user.get_full_name|default:request.user.username }}" disabled>
+        </div>
+        <div class="form-group"><label>Data *</label>{{ form.data }}</div>
+        <div class="form-group"><label>Godzina *</label>{{ form.godzina }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- A. ZAPASY -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">A</span><h3>Kontrola stanu zapasów surowców technicznych</h3></div>
+    <div class="card-body">
+      <div class="form-row form-row-2" style="margin-bottom:20px">
+        <div>
+          <p class="subsection-label">Woda miejska</p>
+          <div class="form-row form-row-2">
+            <div class="form-group"><label>Pomieszczenie socjalne [m³]</label>{{ form.woda_socjalna_m3 }}</div>
+            <div class="form-group"><label>Produkcja [m³]</label>{{ form.woda_produkcja_m3 }}</div>
+          </div>
+        </div>
+        <div>
+          <p class="subsection-label">Olej opałowy</p>
+          <div class="form-row form-row-2">
+            <div class="form-group"><label>Poziom zbiornika [cm]</label>{{ form.olej_poziom_cm }}</div>
+            <div class="form-group"><label>Licznik oleju [litry]</label>{{ form.olej_licznik_litry }}</div>
+          </div>
+        </div>
+      </div>
+      <p class="subsection-label">Gaz</p>
+      <table class="gas-table">
+        <thead>
+          <tr><th style="text-align:left;width:160px">Numer zbiornika</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="row-label">Ciśnienie [bar]</td>
+            <td>{{ form.gaz_cisnienie_1 }}</td><td>{{ form.gaz_cisnienie_2 }}</td><td>{{ form.gaz_cisnienie_3 }}</td>
+            <td>{{ form.gaz_cisnienie_4 }}</td><td>{{ form.gaz_cisnienie_5 }}</td><td>{{ form.gaz_cisnienie_6 }}</td>
+          </tr>
+          <tr>
+            <td class="row-label">Wypełnienie [%]</td>
+            <td>{{ form.gaz_wypelnienie_1 }}</td><td>{{ form.gaz_wypelnienie_2 }}</td><td>{{ form.gaz_wypelnienie_3 }}</td>
+            <td>{{ form.gaz_wypelnienie_4 }}</td><td>{{ form.gaz_wypelnienie_5 }}</td><td>{{ form.gaz_wypelnienie_6 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- B. URZĄDZENIA KOTŁOWE -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">B</span><h3>Nadzór urządzeń kotłowych</h3></div>
+    <div class="card-body" style="padding:0">
+      <table class="form-table">
+        <thead>
+          <tr>
+            <th style="width:36px;text-align:center">Lp.</th>
+            <th style="width:40%">Kontrola</th>
+            <th style="width:18%">Wartość</th>
+            <th>Uwagi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="b-lp">1</td><td>Wskaźnik poziomu wody</td><td>{{ form.b1_wartosc }}</td><td>{{ form.b1_uwagi }}</td></tr>
+          <tr><td class="b-lp">2</td><td>Regulator poziomu wody</td><td>{{ form.b2_wartosc }}</td><td>{{ form.b2_uwagi }}</td></tr>
+          <tr><td class="b-lp">3</td><td>Regulator temperatury lub ciśnienia</td><td>{{ form.b3_wartosc }}</td><td>{{ form.b3_uwagi }}</td></tr>
+          <tr><td class="b-lp">4</td><td>Urządzenie do opróżniania lub odsalania kotła</td><td>{{ form.b4_wartosc }}</td><td>{{ form.b4_uwagi }}</td></tr>
+          <tr><td class="b-lp">5</td><td>Aparatura kontroli obecności zanieczyszczeń stałych w wodzie kotłowej</td><td>{{ form.b5_wartosc }}</td><td>{{ form.b5_uwagi }}</td></tr>
+          <tr><td class="b-lp">6</td><td>Regulacja palnika (elementy wykonawcze do sterowania powietrzem lub paliwem)</td><td>{{ form.b6_wartosc }}</td><td>{{ form.b6_uwagi }}</td></tr>
+          <tr><td class="b-lp">7</td><td>Wentylator powietrza, spalania, wentylator zapłonowy, wentylator powietrza chłodzącego</td><td>{{ form.b7_wartosc }}</td><td>{{ form.b7_uwagi }}</td></tr>
+          <tr><td class="b-lp">8</td><td>Awaryjne urządzenie odcinające</td><td>{{ form.b8_wartosc }}</td><td>{{ form.b8_uwagi }}</td></tr>
+          <tr><td class="b-lp">9</td><td>Zapłon</td><td>{{ form.b9_wartosc }}</td><td>{{ form.b9_uwagi }}</td></tr>
+          <tr><td class="b-lp">10</td><td>Wentylacja</td><td>{{ form.b10_wartosc }}</td><td>{{ form.b10_uwagi }}</td></tr>
+          <tr><td class="b-lp">11</td><td>Kontrola płomienia</td><td>{{ form.b11_wartosc }}</td><td>{{ form.b11_uwagi }}</td></tr>
+          <tr><td class="b-lp">12</td><td>Ocena jakości spalania</td><td>{{ form.b12_wartosc }}</td><td>{{ form.b12_uwagi }}</td></tr>
+          <tr><td class="b-lp">13</td><td>Stan licznika: całkowita liczba godzin pracy</td><td>{{ form.b13_wartosc }}</td><td>{{ form.b13_uwagi }}</td></tr>
+          <tr><td class="b-lp">14</td><td>Stan licznika: całkowita liczba godzin pracy palnika</td><td>{{ form.b14_wartosc }}</td><td>{{ form.b14_uwagi }}</td></tr>
+          <tr><td class="b-lp">15</td><td>Stan licznika: całkowita liczba impulsów rozruchowych palnika</td><td>{{ form.b15_wartosc }}</td><td>{{ form.b15_uwagi }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PODPIS CYFROWY -->
+  <div class="card form-section">
+    <div class="card-header"><span class="section-id">PODPIS</span><h3>Czytelny podpis – Dział Techniczny</h3></div>
+    <div class="card-body">
+      <p class="sig-hint-text">Podpisz się poniżej palcem lub rysikiem.</p>
+      <div class="sig-wrap">
+        <canvas id="sig-canvas-tech" width="600" height="150" class="sig-canvas"></canvas>
+        <div class="sig-actions">
+          <button type="button" id="sig-clear-tech" class="btn btn-secondary btn-sm">✕ Wyczyść</button>
+          <span class="sig-name">{{ request.user.get_full_name|default:request.user.username }}</span>
+        </div>
+      </div>
+      <input type="hidden" name="podpis_techniczny_data" id="sig-input-tech" value="{{ obj.podpis_techniczny|default:'' }}">
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
+    <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">Anuluj</a>
+    <button type="submit" class="btn btn-primary">Zapisz Etap 1 i przekaż do Laboratorium →</button>
+  </div>
+</form>
+
+<script src="{% static 'js/signature.js' %}"></script>
+<script>initSignaturePad('sig-canvas-tech', 'sig-input-tech', 'sig-clear-tech');</script>
+{% endblock %}

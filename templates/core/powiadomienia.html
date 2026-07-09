@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Powiadomienia{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Powiadomienia</h1>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body" style="padding:0">
+    {% if powiadomienia %}
+    <table class="data-table">
+      <thead>
+        <tr><th>Data</th><th>Treść</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for p in powiadomienia %}
+        <tr {% if not p.przeczytane %}style="background:#FFF9E6;font-weight:600"{% endif %}>
+          <td style="white-space:nowrap;font-size:12px;color:var(--brand-muted)">{{ p.created_at|date:"d.m.Y H:i" }}</td>
+          <td>
+            <div style="font-size:13.5px">{{ p.tytul }}</div>
+            {% if p.tresc %}<div style="font-size:12px;color:var(--brand-muted);margin-top:3px">{{ p.tresc }}</div>{% endif %}
+          </td>
+          <td>
+            {% if p.url %}
+            <a href="{{ p.url }}" class="btn btn-primary btn-sm">Przejdź →</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding:48px;text-align:center;color:var(--brand-muted)">
+      <div style="font-size:32px;margin-bottom:10px">🔔</div>
+      <p>Brak powiadomień.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

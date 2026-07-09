@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zmiana hasła – WED Digital</title>
+  <link rel="stylesheet" href="{% static 'css/brueggen.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text" style="font-size:28px;margin-bottom:4px">🔐</div>
+    </div>
+    <div style="text-align:center;margin-bottom:6px">
+      <strong style="font-size:16px;color:var(--brand-primary)">Wymagana zmiana hasła</strong>
+    </div>
+    <div class="login-subtitle">
+      Twoje konto wymaga ustawienia nowego hasła przed pierwszym użyciem platformy.
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:14px">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Nowe hasło</label>
+        {{ form.haslo_nowe }}
+        {% if form.haslo_nowe.errors %}
+        <div style="color:var(--brand-danger);font-size:12px;margin-top:4px">{{ form.haslo_nowe.errors.0 }}</div>
+        {% endif %}
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Powtórz nowe hasło</label>
+        {{ form.haslo_powtorz }}
+        {% if form.haslo_powtorz.errors %}
+        <div style="color:var(--brand-danger);font-size:12px;margin-top:4px">{{ form.haslo_powtorz.errors.0 }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+        Ustaw nowe hasło i wejdź do platformy
+      </button>
+    </form>
+
+    <hr class="login-divider">
+    <p style="font-size:11px;color:var(--brand-muted);text-align:center">
+      Zalogowany jako: <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+    </p>
+  </div>
+</div>
+</body>
+</html>

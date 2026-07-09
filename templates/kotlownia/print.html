@@ -1,0 +1,432 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>CD-00001498-2 · {{ obj.data|date:"d.m.Y" }}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: ArialPL, DejaVu Sans, sans-serif;
+      font-size: 6.5pt;
+      color: #000;
+      background: #fff;
+    }
+
+    @page { size: A4 portrait; margin: 6mm 8mm; }
+
+    /* ── DOCUMENT HEADER ── */
+    .doc-header-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #000;
+      margin-bottom: 2px;
+    }
+    .doc-header-table td {
+      border: none;
+      padding: 2px 5px;
+      vertical-align: middle;
+    }
+    .doc-header-logo-cell {
+      border-right: 1px solid #000;
+      width: 80px;
+      text-align: center;
+    }
+    .doc-header-logo-text {
+      font-size: 13pt;
+      font-weight: bold;
+      font-style: italic;
+      font-family: DocFontI, serif;
+      color: #661C31;
+      line-height: 1;
+    }
+    .main-title {
+      font-size: 8.5pt;
+      font-weight: bold;
+    }
+    .sub-title {
+      font-size: 6pt;
+      color: #444;
+      margin-top: 1px;
+    }
+    .doc-header-meta-cell {
+      border-left: 1px solid #000;
+      width: 125px;
+      font-size: 6pt;
+      text-align: right;
+      vertical-align: middle;
+      padding: 2px 5px;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .sec-title {
+      font-size: 6.5pt;
+      font-weight: bold;
+      border: 1px solid #000;
+      border-bottom: none;
+      padding: 1px 4px;
+      background: #f0f0f0;
+      margin-top: 2px;
+    }
+
+    /* ── TABLES ── */
+    table { width: 100%; border-collapse: collapse; font-size: 6.5pt; }
+    th, td {
+      border: 1px solid #000;
+      padding: 1px 3px;
+      vertical-align: middle;
+      line-height: 1.25;
+    }
+    th {
+      font-weight: bold;
+      background: #f0f0f0;
+      text-align: left;
+      font-size: 6pt;
+    }
+
+    /* ── HEADER ROW ── */
+    .header-row td { height: 14px; vertical-align: top; }
+    .header-label { font-size: 5.5pt; font-weight: bold; display: block; margin-bottom: 1px; }
+    .header-value { font-size: 7pt; }
+
+    /* ── GAS TABLE ── */
+    .gas-label-col { width: 105px; font-weight: bold; }
+    .gas-num-col { text-align: center; width: 9%; }
+
+    /* ── B TABLE ── */
+    .lp-col { width: 20px; text-align: center; font-weight: bold; }
+    .wartosc-col { width: 13%; }
+    .uwagi-col { width: 27%; }
+
+    /* ── C TABLE ── */
+    .c-rodzaj    { width: 9%;  font-weight: bold; text-align: center; vertical-align: middle; }
+    .c-oznaczenie { width: 37%; }
+    .c-jednostka { width: 6%;  text-align: center; }
+    .c-granica   { width: 11%; text-align: center; font-style: italic; }
+    .c-wynik     { width: 16%; }
+
+    /* ── SIGNATURE AREA ── */
+    .sig-area { border: 1px solid #000; padding: 2px 4px; }
+    .sig-label { font-size: 6pt; font-weight: bold; margin-bottom: 1px; }
+    .sig-img-box { height: 24px; overflow: hidden; }
+    .sig-img-box img { max-height: 24px; max-width: 200px; }
+    .sig-name-line {
+      font-size: 6pt; border-top: 1px solid #aaa;
+      padding-top: 1px; margin-top: 1px; color: #333;
+    }
+
+    /* ── WYGLAD ── */
+    .wyglad-desc { font-size: 5.5pt; color: #333; line-height: 1.2; }
+
+    /* ── FOOTER ── */
+    .doc-footer-table {
+      width: 100%; border-collapse: collapse;
+      border-top: 1px solid #000; margin-top: 2px;
+    }
+    .doc-footer-table td { border: none; padding: 1px 4px; font-size: 5.5pt; color: #333; }
+
+    /* ── PRINT BTN (screen only) ── */
+    @media print { .no-print { display: none !important; } }
+    .print-btn-bar { position: fixed; bottom: 20px; right: 20px; z-index: 999; }
+    .pbtn {
+      display: inline-block; margin-left: 8px;
+      padding: 8px 18px; border: none; border-radius: 5px;
+      font-size: 13px; font-weight: bold; cursor: pointer; font-family: inherit;
+    }
+    .pbtn-primary   { background: #661C31; color: #fff; }
+    .pbtn-secondary { background: #ddd; color: #333; }
+  </style>
+</head>
+<body>
+
+<div class="print-btn-bar no-print">
+  <button class="pbtn pbtn-secondary" onclick="window.close()">&#x2715; Zamknij</button>
+  <button class="pbtn pbtn-primary" onclick="window.print()">&#x1F5A8; Drukuj</button>
+</div>
+
+<!-- NAGŁÓWEK -->
+<table class="doc-header-table">
+  <tbody>
+    <tr>
+      <td class="doc-header-logo-cell">
+        <span class="doc-header-logo-text">Br&#252;ggen</span>
+      </td>
+      <td style="padding:2px 8px">
+        <div class="main-title">Nadz&#243;r nad kot&#322;owni&#261; &#8211; formularz</div>
+        <div class="sub-title">CD-00001498-2 &nbsp;&nbsp; Formblatt / Formularz / Formulaire / Form</div>
+      </td>
+      <td class="doc-header-meta-cell">
+        <div>Data wydruku: {% now "d.m.Y H:i" %}</div>
+        <div>Data formularza: {{ obj.data|date:"d.m.Y" }}</div>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- DZIAŁ TECHNICZNY -->
+<div class="sec-title">DZIA&#321; TECHNICZNY:</div>
+<table class="header-row">
+  <tbody><tr>
+    <td style="width:46%">
+      <span class="header-label">Imi&#281; i Nazwisko</span>
+      <span class="header-value">{{ obj.technician.get_full_name|default:obj.technician.username|default:"" }}</span>
+    </td>
+    <td style="width:27%">
+      <span class="header-label">Data</span>
+      <span class="header-value">{{ obj.data|date:"d.m.Y" }}</span>
+    </td>
+    <td style="width:27%">
+      <span class="header-label">Godzina</span>
+      <span class="header-value">{{ obj.godzina|time:"H:i" }}</span>
+    </td>
+  </tr></tbody>
+</table>
+
+<!-- A. ZAPASY -->
+<div class="sec-title">A. Kontrola stanu zapas&#243;w surowc&#243;w technicznych</div>
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Woda miejska</th>
+      <th style="border-left:2px solid #000" colspan="2">Olej opa&#322;owy</th>
+    </tr>
+    <tr>
+      <th style="width:24%">Pomieszczenie socjalne [ m&#179; ]</th>
+      <th style="width:24%">Produkcja [ m&#179; ]</th>
+      <th style="width:26%;border-left:2px solid #000">Poziom zbiornika [ cm ]</th>
+      <th style="width:26%">Licznik oleju [ litry ]</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="height:16px">
+      <td>{{ obj.woda_socjalna_m3|default:"" }}</td>
+      <td>{{ obj.woda_produkcja_m3|default:"" }}</td>
+      <td style="border-left:2px solid #000">{{ obj.olej_poziom_cm|default:"" }}</td>
+      <td>{{ obj.olej_licznik_litry|default:"" }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<table style="margin-top:2px">
+  <thead>
+    <tr>
+      <th class="gas-label-col">Gaz</th>
+      <th colspan="6" style="text-align:center">Numer zbiornika</th>
+    </tr>
+    <tr>
+      <th class="gas-label-col"></th>
+      <th class="gas-num-col">1</th><th class="gas-num-col">2</th>
+      <th class="gas-num-col">3</th><th class="gas-num-col">4</th>
+      <th class="gas-num-col">5</th><th class="gas-num-col">6</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr style="height:14px">
+      <td class="gas-label-col">Ci&#347;nienie [ bar ]</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_1|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_2|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_3|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_4|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_5|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_cisnienie_6|default:"" }}</td>
+    </tr>
+    <tr style="height:14px">
+      <td class="gas-label-col">Wype&#322;nienie [ % ]</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_1|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_2|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_3|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_4|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_5|default:"" }}</td>
+      <td class="gas-num-col">{{ obj.gaz_wypelnienie_6|default:"" }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- B. URZĄDZENIA KOTŁOWE -->
+<div class="sec-title" style="margin-top:3px">B. Nadz&#243;r urz&#261;dze&#324; kot&#322;owych</div>
+<table>
+  <thead>
+    <tr>
+      <th class="lp-col">Lp.</th>
+      <th>Kontrola</th>
+      <th class="wartosc-col">Warto&#347;&#263;</th>
+      <th class="uwagi-col">UWAGI</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in b_rows %}
+    <tr style="height:14px">
+      <td class="lp-col">{{ row.lp }}</td>
+      <td>{{ row.label }}</td>
+      <td class="wartosc-col">{{ row.wartosc|default:"" }}</td>
+      <td class="uwagi-col">{{ row.uwagi|default:"" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- PODPIS DZIAŁ TECHNICZNY -->
+<div class="sig-area" style="margin-top:3px">
+  <div class="sig-label">Czytelny podpis:</div>
+  <div class="sig-img-box">{% if obj.podpis_techniczny %}<img src="{{ obj.podpis_techniczny }}" alt="Podpis">{% endif %}</div>
+  <div class="sig-name-line">{{ obj.technician.get_full_name|default:obj.technician.username|default:"" }}</div>
+</div>
+
+<!-- LABOLATORIUM -->
+<div class="sec-title" style="margin-top:4px">LABOLATORIUM:</div>
+<table class="header-row">
+  <tbody><tr>
+    <td style="width:50%">
+      <span class="header-label">Imi&#281; i Nazwisko</span>
+      <span class="header-value">{% if obj.laborant %}{{ obj.laborant.get_full_name|default:obj.laborant.username }}{% endif %}</span>
+    </td>
+    <td style="width:50%">
+      <span class="header-label">Godzina przeprowadzenia analiz</span>
+      <span class="header-value">{{ obj.lab_godzina|time:"H:i"|default:"" }}</span>
+    </td>
+  </tr></tbody>
+</table>
+
+<!-- C. ANALIZA WODY -->
+<div class="sec-title">C. Analiza laboratoryjna wody</div>
+<table>
+  <thead>
+    <tr>
+      <th class="c-rodzaj">Rodzaj</th>
+      <th class="c-oznaczenie">Oznaczenie</th>
+      <th class="c-jednostka"></th>
+      <th class="c-granica">Granica tolerancji</th>
+      <th class="c-wynik">Wynik pomiaru</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Woda zasilająca -->
+    <tr>
+      <td class="c-rodzaj" rowspan="6">Woda zasilaj&#261;ca</td>
+      <td class="c-oznaczenie">pH (w temp 25&#176;C)</td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica">&gt; 9</td>
+      <td class="c-wynik">{{ obj.wz_ph|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Wapniowce (twardo&#347;&#263; ca&#322;kowita)</td>
+      <td class="c-jednostka">&#176;dH</td>
+      <td class="c-granica">&lt; 0,05</td>
+      <td class="c-wynik">{{ obj.wz_wapnioce_dh|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Tlen O<sub>2</sub></td>
+      <td class="c-jednostka">mg/litr</td>
+      <td class="c-granica">&lt; 0,1</td>
+      <td class="c-wynik">{{ obj.wz_tlen_mg|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Przewodno&#347;&#263; elektryczna (org.)</td>
+      <td class="c-jednostka">&#181;S/cm</td>
+      <td class="c-granica">&lt; 500</td>
+      <td class="c-wynik">{{ obj.wz_przewodnosc|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Temperatura</td>
+      <td class="c-jednostka">&#176;C</td>
+      <td class="c-granica">25 &#176;C</td>
+      <td class="c-wynik">{{ obj.wz_temperatura|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">
+        <b>Wygl&#261;d</b>
+        <span class="wyglad-desc"> &#8211; Ok: bezbarwna, klarowna i pozbawiona substancji rozpuszczonych / Nie: m&#281;tna</span>
+      </td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica">Ok / Nie</td>
+      <td class="c-wynik">{% if obj.wz_wyglad %}{{ obj.wz_wyglad|upper }}{% endif %}</td>
+    </tr>
+    <!-- Kondensat -->
+    <tr>
+      <td class="c-rodzaj" rowspan="3">Kondensat</td>
+      <td class="c-oznaczenie">pH (w temp 25&#176;C)</td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica"></td>
+      <td class="c-wynik">{{ obj.k_ph|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Wapniowce (twardo&#347;&#263; ca&#322;kowita)</td>
+      <td class="c-jednostka">&#176;dH</td>
+      <td class="c-granica">&lt; 0,05</td>
+      <td class="c-wynik">{{ obj.k_wapnioce_dh|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Przewodno&#347;&#263; elektryczna (org.)</td>
+      <td class="c-jednostka">&#181;S/cm</td>
+      <td class="c-granica">&lt; 500</td>
+      <td class="c-wynik">{{ obj.k_przewodnosc|default:"" }}</td>
+    </tr>
+    <!-- Woda kotłowa -->
+    <tr>
+      <td class="c-rodzaj" rowspan="4">Woda kot&#322;owa</td>
+      <td class="c-oznaczenie">pH (w temp 25&#176;C)</td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica">10,5 &#8211; 12</td>
+      <td class="c-wynik">{{ obj.wk_ph|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Wapniowce (twardo&#347;&#263; ca&#322;kowita)</td>
+      <td class="c-jednostka">&#176;dH</td>
+      <td class="c-granica">&lt; 0,05</td>
+      <td class="c-wynik">{{ obj.wk_wapnioce_dh|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Przewodno&#347;&#263; elektryczna (org.)</td>
+      <td class="c-jednostka">&#181;S/cm</td>
+      <td class="c-granica">30 &#8211; 8000</td>
+      <td class="c-wynik">{{ obj.wk_przewodnosc|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">
+        <b>Wygl&#261;d</b>
+        <span class="wyglad-desc"> &#8211; Ok: bezbarwna, klarowna i pozbawiona substancji rozpuszczonych / Nie: m&#281;tna</span>
+      </td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica">Ok / Nie</td>
+      <td class="c-wynik">{% if obj.wk_wyglad %}{{ obj.wk_wyglad|upper }}{% endif %}</td>
+    </tr>
+    <!-- Woda po uzdatnianiu -->
+    <tr>
+      <td class="c-rodzaj" rowspan="3">Woda po uzdatnianiu</td>
+      <td class="c-oznaczenie">pH (w temp 25&#176;C)</td>
+      <td class="c-jednostka"></td>
+      <td class="c-granica"></td>
+      <td class="c-wynik">{{ obj.wu_ph|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Wapniowce (twardo&#347;&#263; ca&#322;kowita)</td>
+      <td class="c-jednostka">&#176;dH</td>
+      <td class="c-granica">&lt; 0,1</td>
+      <td class="c-wynik">{{ obj.wu_wapnioce_dh|default:"" }}</td>
+    </tr>
+    <tr>
+      <td class="c-oznaczenie">Przewodno&#347;&#263; elektryczna (org.)</td>
+      <td class="c-jednostka">&#181;S/cm</td>
+      <td class="c-granica"></td>
+      <td class="c-wynik">{{ obj.wu_przewodnosc|default:"" }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- PODPIS LABOLATORIUM -->
+<div class="sig-area" style="margin-top:3px">
+  <div class="sig-label">Czytelny podpis:</div>
+  <div class="sig-img-box">{% if obj.podpis_laboratorium %}<img src="{{ obj.podpis_laboratorium }}" alt="Podpis">{% endif %}</div>
+  <div class="sig-name-line">{% if obj.laborant %}{{ obj.laborant.get_full_name|default:obj.laborant.username }}{% endif %}</div>
+</div>
+
+<!-- STOPKA -->
+<table class="doc-footer-table">
+  <tbody><tr>
+    <td>G&#252;ltig ab | Wa&#380;ne od | Valable &#224; partir du | Valid from: 23.07.2024</td>
+    <td style="text-align:right">1 | 1</td>
+  </tr></tbody>
+</table>
+
+</body>
+</html>

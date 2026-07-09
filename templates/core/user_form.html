@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>{{ action }}</h1>
+  </div>
+  <a href="{% url 'user_list' %}" class="btn btn-secondary">← Wróć</a>
+</div>
+
+<div class="card form-section" style="max-width:640px">
+  <div class="card-body">
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-error" style="margin-bottom:16px">
+        {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+      </div>
+      {% endif %}
+
+      {% for field in form %}
+      <div class="uf-field">
+
+        {% if field.name == 'klaster' %}
+          <label class="uf-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          <p style="font-size:11px;color:var(--brand-muted);margin-top:5px">
+            Po wybraniu klastra role zostaną ustawione automatycznie. Możesz też pominąć klaster i zaznaczyć role ręcznie poniżej.
+          </p>
+
+        {% elif field.name == 'groups' %}
+          <div class="uf-label">{{ field.label }}</div>
+          <div class="uf-checkgroup" id="groups-wrap">{{ field }}</div>
+
+        {% elif field.name == 'is_active' %}
+          <label class="uf-bool">{{ field }}<span>{{ field.label }}</span></label>
+
+        {% else %}
+          <label class="uf-label" for="{{ field.id_for_label }}">
+            {{ field.label }}{% if field.field.required %} *{% endif %}
+          </label>
+          {{ field }}
+        {% endif %}
+
+        {% if field.errors %}
+        <div class="uf-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+
+      <div style="display:flex;gap:12px;margin-top:24px">
+        <button type="submit" class="btn btn-primary">Zapisz</button>
+        <a href="{% url 'user_list' %}" class="btn btn-secondary">Anuluj</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+.uf-field { margin-bottom: 18px; }
+.uf-label { display:block; font-size:11px; font-weight:700; color:var(--brand-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; }
+.uf-checkgroup ul { list-style:none; padding:0; display:flex; flex-wrap:wrap; gap:8px; }
+.uf-checkgroup ul li label { display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:500; color:var(--brand-text); text-transform:none; letter-spacing:0; background:#F5EFF1; border:1px solid var(--brand-border); border-radius:5px; padding:6px 14px; cursor:pointer; transition:background 0.15s; }
+.uf-checkgroup ul li label:hover { background:#EDD5DC; }
+.uf-checkgroup ul li label.auto-checked { background:#F5E6EA; border-color:var(--brand-primary); }
+.uf-checkgroup ul li input[type=checkbox] { accent-color:var(--brand-primary); width:15px; height:15px; }
+.uf-bool { display:inline-flex; align-items:center; gap:10px; font-size:14px; font-weight:500; color:var(--brand-text); cursor:pointer; }
+.uf-bool input[type=checkbox] { accent-color:var(--brand-primary); width:17px; height:17px; flex-shrink:0; }
+.uf-error { color:var(--brand-danger); font-size:12px; margin-top:4px; }
+</style>
+
+{% if klastry_data %}
+<script>
+const KLASTRY = {{ klastry_data|safe }};
+
+const klasterSel = document.getElementById('id_klaster');
+const groupsWrap = document.getElementById('groups-wrap');
+
+function applyKlaster(klasterId) {
+  if (!groupsWrap) return;
+  const checkboxes = groupsWrap.querySelectorAll('input[type=checkbox]');
+  const labels     = groupsWrap.querySelectorAll('li label');
+
+  if (!klasterId || !KLASTRY[klasterId]) {
+    checkboxes.forEach(cb => {
+      cb.disabled = false;
+      cb.closest('li').querySelector('label').classList.remove('auto-checked');
+    });
+    return;
+  }
+
+  const groupIds = KLASTRY[klasterId].map(String);
+
+  checkboxes.forEach(cb => {
+    const inCluster = groupIds.includes(cb.value);
+    cb.checked  = inCluster;
+    cb.disabled = false;  // nigdy nie blokuj — disabled nie jest wysyłany w POST
+    cb.closest('li').querySelector('label').classList.toggle('auto-checked', inCluster);
+  });
+}
+
+klasterSel.addEventListener('change', () => applyKlaster(klasterSel.value));
+applyKlaster(klasterSel.value);
+</script>
+{% endif %}
+
+{% endblock %}
