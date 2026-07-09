@@ -68,3 +68,4 @@ jobs:
           app-name: 'DigitalWEDWilga'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_B4CEC49BE7644206BE03BE356635F895 }}
+          startup-command: 'python manage.py migrate --noinput && gunicorn wed_platform.wsgi --bind=0.0.0.0:8000 --timeout 120'
