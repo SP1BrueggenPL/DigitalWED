@@ -1,0 +1,67 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kod autoryzacyjny – WED Digital</title>
+  <link rel="stylesheet" href="{% static 'css/brueggen.css' %}">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-text">Brüggen</div>
+    </div>
+    <div class="login-subtitle">H. &amp; J. Brüggen KG · WED Digital Platform</div>
+
+    {% if first_time %}
+    <p style="font-size:12px;color:var(--brand-muted);text-align:center;margin-bottom:16px">
+      Pierwsze logowanie – ustaw swój kod autoryzacyjny (min. 4 znaki).
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:14px">
+        <label>Nowy kod autoryzacyjny</label>
+        <input type="password" name="auth_code" class="form-control"
+               autofocus required autocomplete="new-password" minlength="4">
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Powtórz kod</label>
+        <input type="password" name="auth_code2" class="form-control"
+               required autocomplete="new-password" minlength="4">
+      </div>
+      {% if error %}
+      <div class="alert alert-error" style="margin-bottom:14px">{{ error }}</div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+        Ustaw kod i zaloguj
+      </button>
+    </form>
+    {% else %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="form-group" style="margin-bottom:20px">
+        <label>Kod autoryzacyjny</label>
+        <input type="password" name="auth_code" class="form-control"
+               autofocus required autocomplete="current-password">
+      </div>
+      {% if error %}
+      <div class="alert alert-error" style="margin-bottom:14px">{{ error }}</div>
+      {% endif %}
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center">
+        Zaloguj się
+      </button>
+    </form>
+    {% endif %}
+
+    <div style="margin-top:12px;text-align:center">
+      <a href="{% url 'login' %}" style="font-size:11px;color:var(--brand-muted)">← Zmień numer chip</a>
+    </div>
+
+    <hr class="login-divider">
+    <p style="font-size:11px;color:var(--brand-muted);text-align:center">H. & J. Brüggen KG · Dział WED</p>
+  </div>
+</div>
+</body>
+</html>

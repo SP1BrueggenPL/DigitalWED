@@ -60,6 +60,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wed_platform.wsgi.application'
 
+AUTHENTICATION_BACKENDS = [
+    'core.backends.ChipAuthBackend',
+]
+
 import dj_database_url
 
 if os.environ.get('DATABASE_URL'):

@@ -5,7 +5,8 @@ from . import user_admin_views
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
-    path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
+    path('login/', views.chip_login_step1, name='login'),
+    path('login/kod/', views.chip_login_step2, name='login_kod'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('zmien-haslo/', views.zmien_haslo, name='zmien_haslo'),
     path('uzytkownicy/', user_admin_views.user_list, name='user_list'),
