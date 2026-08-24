@@ -60,17 +60,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wed_platform.wsgi.application'
 
-if os.environ.get('POSTGRES_HOST'):
+import dj_database_url
+
+if os.environ.get('DATABASE_URL'):
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME':     os.environ.get('POSTGRES_DB',       'weddb'),
-            'USER':     os.environ.get('POSTGRES_USER',     'wedadmin'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST':     os.environ.get('POSTGRES_HOST',     'localhost'),
-            'PORT':     os.environ.get('POSTGRES_PORT',     '5432'),
-            'OPTIONS':  {'sslmode': 'require'},
-        }
+        'default': dj_database_url.config(
+            env='DATABASE_URL',
+            conn_max_age=600,
+            ssl_require=True,
+        )
     }
 else:
     DATABASES = {

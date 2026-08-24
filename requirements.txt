@@ -5,3 +5,4 @@ fpdf2==2.8.7
 pillow==12.2.0
 tzdata==2026.2
 psycopg2-binary==2.9.10
+dj-database-url==2.3.0
