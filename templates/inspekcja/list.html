@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Inspekcje WED{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Inspekcje WED</h1>
+    <div class="doc-number">Dział WED · Listy kontrolne</div>
+  </div>
+  <div class="page-header-right">
+    <a href="{% url 'inspekcja:zmiana_list' %}" class="btn btn-outline" style="margin-right:8px">Zmiany</a>
+    <a href="{% url 'inspekcja:create' %}" class="btn btn-primary">+ Nowa inspekcja</a>
+  </div>
+</div>
+
+{% if is_helpdesk %}
+<div class="alert alert-info" style="margin-bottom:16px;font-size:13px">
+  Widok Helpdesk – widzisz wszystkie inspekcje, w tym ukryte. Możesz ukrywać lub odkrywać inspekcje.
+</div>
+{% endif %}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Zmiana</th>
+      <th>Miejsce</th>
+      <th>Osoby</th>
+      <th>Status</th>
+      {% if is_helpdesk %}<th>Widoczność</th>{% endif %}
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ins in inspekcje %}
+    <tr {% if ins.ukryta %}style="opacity:0.5"{% endif %}>
+      <td>{{ ins.created_at|date:"d.m.Y H:i" }}</td>
+      <td>{{ ins.zmiana }}</td>
+      <td>{{ ins.get_miejsce_display_value }}</td>
+      <td>
+        {% for osoba in ins.osoby_kontrolujace.all %}
+          <span class="badge">{{ osoba.get_full_name|default:osoba.username }}</span>
+        {% empty %}—{% endfor %}
+      </td>
+      <td>
+        <span class="badge {% if ins.status == 'zakonczona' %}badge-success{% else %}badge-warning{% endif %}">
+          {{ ins.get_status_display }}
+        </span>
+      </td>
+      {% if is_helpdesk %}
+      <td>
+        <button class="btn btn-sm btn-outline toggle-ukryj"
+                data-pk="{{ ins.pk }}"
+                data-ukryta="{{ ins.ukryta|lower }}"
+                data-url="{% url 'inspekcja:toggle_ukryj' ins.pk %}">
+          {% if ins.ukryta %}🔒 Ukryta{% else %}👁 Widoczna{% endif %}
+        </button>
+      </td>
+      {% endif %}
+      <td>
+        <a href="{% url 'inspekcja:detail' ins.pk %}" class="btn btn-sm btn-outline">Otwórz</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="8" style="text-align:center;color:var(--brand-muted);padding:32px">
+        Brak inspekcji. <a href="{% url 'inspekcja:create' %}">Utwórz pierwszą →</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_helpdesk %}
+<script>
+document.querySelectorAll('.toggle-ukryj').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const resp = await fetch(btn.dataset.url, {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token }}'},
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const row = btn.closest('tr');
+      row.style.opacity = data.ukryta ? '0.5' : '1';
+      btn.dataset.ukryta = data.ukryta ? 'true' : 'false';
+      btn.textContent = data.ukryta ? '🔒 Ukryta' : '👁 Widoczna';
+    }
+  });
+});
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% comment %}Partial: wiersz wyniku z wyborem OK/NOK/ND, uwagami i uploadem zdjęcia{% endcomment %}
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start">
+
+  <!-- Wybór wyniku -->
+  <div style="display:flex;gap:6px;align-items:center">
+    {% for val, lbl in wynik_choices %}
+    <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer">
+      <input type="radio" name="wynik_{{ wynik.pk }}" value="{{ val }}"
+             {% if wynik.wynik == val %}checked{% endif %}
+             {% if not is_wed or ins.status != 'w_toku' %}disabled{% endif %}>
+      <span class="badge
+        {% if val == 'ok' %}badge-success{% elif val == 'nok' %}badge-danger{% else %}badge-muted{% endif %}">
+        {{ lbl }}
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+
+  <!-- Uwagi -->
+  {% if is_wed and ins.status == 'w_toku' %}
+  <input type="text" name="uwagi_{{ wynik.pk }}" value="{{ wynik.uwagi }}"
+         placeholder="Uwagi…" class="form-control" style="flex:1;min-width:180px;font-size:13px">
+  {% elif wynik.uwagi %}
+  <span style="font-size:12px;color:var(--brand-muted);flex:1">{{ wynik.uwagi }}</span>
+  {% endif %}
+
+  <!-- Zdjęcie -->
+  {% if is_wed and ins.status == 'w_toku' %}
+  <label style="cursor:pointer;font-size:12px;color:var(--brand-primary)">
+    📷 Dodaj zdjęcie
+    <input type="file" accept="image/*" style="display:none"
+           onchange="uploadZdjecie({{ wynik.pk }}, this)">
+  </label>
+  {% endif %}
+
+  {% if wynik.zdjecie %}
+  <img data-preview="{{ wynik.pk }}" src="{{ wynik.zdjecie.url }}"
+       style="height:48px;border-radius:4px;object-fit:cover;cursor:pointer"
+       onclick="window.open('{{ wynik.zdjecie.url }}')">
+  {% else %}
+  <img data-preview="{{ wynik.pk }}" style="display:none;height:48px;border-radius:4px;object-fit:cover">
+  {% endif %}
+
+  {% if wynik.analiza_ai %}
+  <span style="font-size:11px;color:var(--brand-muted);flex-basis:100%">
+    🤖 {{ wynik.analiza_ai }}
+    {% if wynik.ai_pasuje == False and wynik.ai_sugestia %}
+    · <strong style="color:#e65c00">Sugerowana sekcja: {{ wynik.ai_sugestia }}</strong>
+    {% endif %}
+  </span>
+  {% endif %}
+</div>

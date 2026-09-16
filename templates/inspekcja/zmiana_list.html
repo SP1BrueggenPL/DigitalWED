@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Zmiany{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Zmiany</h1>
+    <div class="doc-number">Inspekcja WED · Zarządzanie zmianami</div>
+  </div>
+  <div class="page-header-right">
+    <a href="{% url 'inspekcja:zmiana_create' %}" class="btn btn-primary">+ Nowa zmiana</a>
+  </div>
+</div>
+
+<table class="table">
+  <thead>
+    <tr>
+      <th>Data</th>
+      <th>Typ zmiany</th>
+      <th>Osoby na zmianie</th>
+      <th>Inspekcje</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for zmiana in zmiany %}
+    <tr>
+      <td>{{ zmiana.data|date:"d.m.Y" }}</td>
+      <td>{{ zmiana.get_typ_display }}</td>
+      <td>
+        {% for osoba in zmiana.osoby.all %}
+          <span class="badge">{{ osoba.get_full_name|default:osoba.username }}</span>
+        {% empty %}
+          <span style="color:var(--brand-muted);font-size:12px">Brak osób</span>
+        {% endfor %}
+      </td>
+      <td>{{ zmiana.inspekcje.count }}</td>
+      <td>
+        <a href="{% url 'inspekcja:zmiana_edit' zmiana.pk %}" class="btn btn-sm btn-outline">Edytuj osoby</a>
+      </td>
+    </tr>
+    {% empty %}
+    <tr>
+      <td colspan="5" style="text-align:center;color:var(--brand-muted);padding:32px">
+        Brak zdefiniowanych zmian. <a href="{% url 'inspekcja:zmiana_create' %}">Dodaj pierwszą zmianę →</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div style="margin-top:16px">
+  <a href="{% url 'inspekcja:list' %}" style="font-size:13px;color:var(--brand-muted)">← Powrót do inspekcji</a>
+</div>
+{% endblock %}

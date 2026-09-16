@@ -36,6 +36,15 @@ ALL_PROCESSES = [
         'group': 'Kotłownia',
         'icon': '🔥',
     },
+    {
+        'id': 'inspekcja',
+        'name': 'Inspekcje WED',
+        'doc_number': 'Lista kontrolna WED',
+        'description': 'Inspekcje działu WED: listy kontrolne, zdjęcia, analiza AI, zarządzanie zmianami.',
+        'url': 'inspekcja:list',
+        'group': 'WED',
+        'icon': '🔍',
+    },
 ]
 
 
