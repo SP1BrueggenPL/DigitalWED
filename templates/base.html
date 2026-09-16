@@ -39,22 +39,12 @@
     <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
       <span class="sidebar-icon">🔥</span> Nadzór kotłowni
     </a>
-    <a href="{% url 'inspekcja:list' %}" class="sidebar-link {% if 'inspekcja' in request.resolver_match.namespace %}active{% endif %}">
-      <span class="sidebar-icon">🔍</span> Inspekcje WED
-    </a>
     {% else %}
-      {% for g in user.groups.all %}
-        {% if g.name == 'Kotłownia' %}
+      {% for g in user.groups.all %}{% if g.name == 'Kotłownia' %}
     <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
       <span class="sidebar-icon">🔥</span> Nadzór kotłowni
     </a>
-        {% endif %}
-        {% if g.name == 'WED' or g.name == 'Helpdesk' %}
-    <a href="{% url 'inspekcja:list' %}" class="sidebar-link {% if 'inspekcja' in request.resolver_match.namespace %}active{% endif %}">
-      <span class="sidebar-icon">🔍</span> Inspekcje WED
-    </a>
-        {% endif %}
-      {% endfor %}
+      {% endif %}{% endfor %}
     {% endif %}
   </div>
   <div class="sidebar-section">

@@ -26,10 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'kotlownia',
-    'inspekcja',
 ]
-
-ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
