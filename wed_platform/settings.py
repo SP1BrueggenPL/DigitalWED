@@ -104,13 +104,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.office365.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
+# Email via Azure Communication Services
+# Env vars: AZURE_CONNECTION_STRING, AZURE_SENDER_ADDRESS
+# Recipients configured in Django admin -> Kotlownia -> Ustawienia
 
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'

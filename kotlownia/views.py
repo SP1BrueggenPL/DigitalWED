@@ -111,16 +111,22 @@ def sprawdz_odchylki(obj):
 
 
 def _wyslij_email_kotlownia(obj, all_ok, deviations):
-    from django.core.mail import send_mail
+    import os
+    connection_string = os.environ.get('AZURE_CONNECTION_STRING', '')
+    sender_address    = os.environ.get('AZURE_SENDER_ADDRESS', '')
+    if not connection_string or not sender_address:
+        logger.warning('Kotlownia email: brak AZURE_CONNECTION_STRING lub AZURE_SENDER_ADDRESS')
+        return
+
     ustawienia = KotlowniaUstawienia.get()
     recipients = [e for e in [ustawienia.email_odbiorca_1, ustawienia.email_odbiorca_2] if e]
     if not recipients:
         return
 
-    date_str = obj.data.strftime('%d.%m.%Y') if obj.data else '—'
-    time_str = obj.lab_godzina.strftime('%H:%M') if obj.lab_godzina else '—'
-    tech_name = obj.technician.get_full_name() if obj.technician else '—'
-    lab_name = obj.laborant.get_full_name() if obj.laborant else '—'
+    date_str  = obj.data.strftime('%d.%m.%Y')  if obj.data       else '-'
+    time_str  = obj.lab_godzina.strftime('%H:%M') if obj.lab_godzina else '-'
+    tech_name = obj.technician.get_full_name()  if obj.technician else '-'
+    lab_name  = obj.laborant.get_full_name()    if obj.laborant   else '-'
 
     if all_ok:
         subject = f'Kotłownia {date_str} – Wyniki w normie'
@@ -146,9 +152,17 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
     body = '\n'.join(lines)
 
     try:
-        send_mail(subject, body, None, recipients, fail_silently=True)
+        from azure.communication.email import EmailClient
+        client = EmailClient.from_connection_string(connection_string)
+        message = {
+            'senderAddress': sender_address,
+            'recipients': {'to': [{'address': addr} for addr in recipients]},
+            'content': {'subject': subject, 'plainText': body},
+        }
+        poller = client.begin_send(message)
+        poller.result()
     except Exception as exc:
-        logger.error('Kotłownia email send failed: %s', exc)
+        logger.error('Kotlownia email send failed: %s', exc)
 
 
 # ── Access helpers ─────────────────────────────────────────────────────────────
