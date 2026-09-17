@@ -5,9 +5,14 @@
 <div class="page-header">
   <div class="page-header-left">
     <h1>Nadzór nad kotłownią</h1>
-    <div class="doc-number">CD-00001498-2 · Formblatt / Formularz / Formulaire / Form</div>
+    <div class="doc-number">CD-00001498-4 · Formblatt / Formularz / Formulaire / Form</div>
   </div>
-  <a href="{% url 'kotlownia:new' %}" class="btn btn-primary">+ Nowy formularz</a>
+  <div style="display:flex;gap:8px">
+    {% if is_superuser %}
+    <a href="{% url 'kotlownia:ustawienia' %}" class="btn btn-secondary">⚙ Ustawienia</a>
+    {% endif %}
+    <a href="{% url 'kotlownia:new' %}" class="btn btn-primary">+ Nowy formularz</a>
+  </div>
 </div>
 
 <div class="card">
@@ -22,6 +27,7 @@
           <th>Technik</th>
           <th>Laborant</th>
           <th>Status</th>
+          <th style="text-align:center">Odchyłki</th>
           <th>Dodano</th>
           <th></th>
         </tr>
@@ -40,6 +46,14 @@
               <span class="status-chip status-chip--info">Etap 2 – laboratorium</span>
             {% else %}
               <span class="status-chip status-chip--done">✓ Zakończony</span>
+            {% endif %}
+          </td>
+          <td style="text-align:center;font-size:18px">
+            {% if f.odchylki_ok is not None %}
+              {% if f.odchylki_ok %}<span style="color:#1a7a3c;font-weight:700" title="Wyniki w normie">✓</span>
+              {% else %}<span style="color:#c0392b;font-weight:700" title="Odchyłki od normy">✗</span>
+              {% endif %}
+            {% else %}<span style="color:var(--brand-muted)">—</span>
             {% endif %}
           </td>
           <td style="color:var(--brand-muted);font-size:12px">{{ f.created_at|date:"d.m.Y H:i" }}</td>

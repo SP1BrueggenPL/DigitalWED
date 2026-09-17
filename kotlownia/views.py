@@ -219,13 +219,20 @@ def formularz_list(request):
             status=KotlowniaFormularz.STATUS_ZAKONCZONY,
             laborant=request.user,
         )
-        return render(request, 'kotlownia/list_lab.html', {'pending': pending, 'done': done})
-    elif request.user.is_superuser:
-        formularze = KotlowniaFormularz.objects.all()
-        return render(request, 'kotlownia/list.html', {'formularze': formularze})
-    else:
-        formularze = KotlowniaFormularz.objects.filter(technician=request.user)
-        return render(request, 'kotlownia/list.html', {'formularze': formularze})
+        for f in done:
+            f.odchylki_ok = sprawdz_odchylki(f)[0]
+        return render(request, 'kotlownia/list_lab.html', {
+            'pending': pending, 'done': done,
+        })
+    for f in formularze:
+        if f.status == KotlowniaFormularz.STATUS_ZAKONCZONY:
+            f.odchylki_ok = sprawdz_odchylki(f)[0]
+        else:
+            f.odchylki_ok = None
+    return render(request, 'kotlownia/list.html', {
+        'formularze': formularze,
+        'is_superuser': request.user.is_superuser,
+    })
 
 
 @login_required
@@ -360,3 +367,18 @@ def powiadomienia_list(request):
     pows = Powiadomienie.objects.filter(odbiorca=request.user)
     pows.filter(przeczytane=False).update(przeczytane=True)
     return render(request, 'core/powiadomienia.html', {'powiadomienia': pows})
+
+
+@login_required
+def ustawienia(request):
+    if not request.user.is_superuser:
+        messages.error(request, 'Brak uprawnień do ustawień.')
+        return redirect('kotlownia:list')
+    obj = KotlowniaUstawienia.get()
+    if request.method == 'POST':
+        obj.email_odbiorca_1 = request.POST.get('email_odbiorca_1', '').strip()
+        obj.email_odbiorca_2 = request.POST.get('email_odbiorca_2', '').strip()
+        obj.save()
+        messages.success(request, 'Ustawienia zapisane.')
+        return redirect('kotlownia:ustawienia')
+    return render(request, 'kotlownia/ustawienia.html', {'obj': obj})

@@ -5,7 +5,7 @@
 <div class="page-header">
   <div class="page-header-left">
     <h1>Nadzór nad kotłownią</h1>
-    <div class="doc-number">CD-00001498-2 · Widok Laboratorium</div>
+    <div class="doc-number">CD-00001498-4 · Widok Laboratorium</div>
   </div>
 </div>
 
@@ -64,6 +64,7 @@
           <th>Data</th>
           <th>Godzina analiz</th>
           <th>Technik</th>
+          <th style="text-align:center">Odchyłki</th>
           <th>Zakończono</th>
           <th></th>
         </tr>
@@ -74,6 +75,11 @@
           <td>{{ f.data|date:"d.m.Y" }}</td>
           <td>{{ f.lab_godzina|time:"H:i"|default:"—" }}</td>
           <td>{{ f.technician.get_full_name|default:f.technician.username|default:"—" }}</td>
+          <td style="text-align:center;font-size:18px">
+            {% if f.odchylki_ok %}<span style="color:#1a7a3c;font-weight:700" title="Wyniki w normie">✓</span>
+            {% else %}<span style="color:#c0392b;font-weight:700" title="Odchyłki od normy">✗</span>
+            {% endif %}
+          </td>
           <td style="color:var(--brand-muted);font-size:12px">{{ f.updated_at|date:"d.m.Y H:i" }}</td>
           <td>
             <a href="{% url 'kotlownia:detail' f.pk %}" class="btn btn-secondary btn-sm">Podgląd</a>
