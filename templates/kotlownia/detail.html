@@ -5,7 +5,7 @@
 <div class="page-header">
   <div class="page-header-left">
     <h1>Nadzór nad kotłownią – {{ obj.data|date:"d.m.Y" }}</h1>
-    <div class="doc-number">CD-00001498-2 · {{ obj.godzina|time:"H:i" }}</div>
+    <div class="doc-number">CD-00001498-4 · {{ obj.godzina|time:"H:i" }}</div>
   </div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
     {% if obj.status == 'laboratorium' and can_etap2 %}
@@ -102,7 +102,7 @@
   <div class="card-body" style="padding:0">
     <table class="form-table">
       <thead>
-        <tr><th style="width:36px;text-align:center">Lp.</th><th style="width:42%">Kontrola</th><th style="width:18%">Wartość</th><th>Uwagi</th></tr>
+        <tr><th style="width:36px;text-align:center">Lp.</th><th style="width:42%">Kontrola</th><th style="width:18%">Wartość / OK</th><th>Uwagi</th></tr>
       </thead>
       <tbody>
         {% for row in b_rows %}
@@ -149,25 +149,25 @@
   <div class="card-body" style="padding:0">
     <table class="form-table">
       <thead>
-        <tr><th style="width:14%">Rodzaj</th><th style="width:34%">Oznaczenie</th><th style="width:9%">Jedn.</th><th style="width:15%">Granica toler.</th><th>Wynik pomiaru</th></tr>
+        <tr><th style="width:13%">Rodzaj</th><th style="width:31%">Oznaczenie</th><th style="width:8%">Jedn.</th><th style="width:14%">Granica toler.</th><th>Wynik pomiaru</th><th style="width:9%;text-align:center">Odchyłki</th></tr>
       </thead>
       <tbody>
-        <tr><td rowspan="6" class="water-type">Woda zasilająca</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">&gt; 9</td><td>{{ obj.wz_ph|default:"—" }}</td></tr>
-        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wz_wapnioce_dh|default:"—" }}</td></tr>
-        <tr><td>Tlen O₂</td><td>mg/l</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wz_tlen_mg|default:"—" }}</td></tr>
-        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.wz_przewodnosc|default:"—" }}</td></tr>
-        <tr><td>Temperatura</td><td>°C</td><td class="tolerance">25 °C</td><td>{{ obj.wz_temperatura|default:"—" }}</td></tr>
-        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wz_wyglad|upper|default:"—" }}</td></tr>
-        <tr><td rowspan="3" class="water-type">Kondensat</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.k_ph|default:"—" }}</td></tr>
-        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.k_wapnioce_dh|default:"—" }}</td></tr>
-        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.k_przewodnosc|default:"—" }}</td></tr>
-        <tr><td rowspan="4" class="water-type">Woda kotłowa</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">10,5–12</td><td>{{ obj.wk_ph|default:"—" }}</td></tr>
-        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wk_wapnioce_dh|default:"—" }}</td></tr>
-        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">30–8000</td><td>{{ obj.wk_przewodnosc|default:"—" }}</td></tr>
-        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wk_wyglad|upper|default:"—" }}</td></tr>
-        <tr><td rowspan="3" class="water-type">Woda po uzdatnianiu</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.wu_ph|default:"—" }}</td></tr>
-        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wu_wapnioce_dh|default:"—" }}</td></tr>
-        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td></td><td>{{ obj.wu_przewodnosc|default:"—" }}</td></tr>
+        <tr><td rowspan="6" class="water-type">Woda zasilająca</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">&gt; 9</td><td>{{ obj.wz_ph|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_ph is not None %}{% if odchylki.wz_ph %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wz_wapnioce_dh|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_wapnioce_dh is not None %}{% if odchylki.wz_wapnioce_dh %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Tlen O₂</td><td>mg/l</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wz_tlen_mg|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_tlen_mg is not None %}{% if odchylki.wz_tlen_mg %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.wz_przewodnosc|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_przewodnosc is not None %}{% if odchylki.wz_przewodnosc %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Temperatura</td><td>°C</td><td class="tolerance">25 °C</td><td>{{ obj.wz_temperatura|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_temperatura is not None %}{% if odchylki.wz_temperatura %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wz_wyglad|upper|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wz_wyglad is not None %}{% if odchylki.wz_wyglad %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td rowspan="3" class="water-type">Kondensat</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.k_ph|default:"—" }}</td><td class="odchylki-cell"></td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.k_wapnioce_dh|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.k_wapnioce_dh is not None %}{% if odchylki.k_wapnioce_dh %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">&lt; 500</td><td>{{ obj.k_przewodnosc|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.k_przewodnosc is not None %}{% if odchylki.k_przewodnosc %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td rowspan="4" class="water-type">Woda kotłowa</td><td>pH (w temp 25°C)</td><td></td><td class="tolerance">10,5–12</td><td>{{ obj.wk_ph|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wk_ph is not None %}{% if odchylki.wk_ph %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,05</td><td>{{ obj.wk_wapnioce_dh|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wk_wapnioce_dh is not None %}{% if odchylki.wk_wapnioce_dh %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td class="tolerance">30–8000</td><td>{{ obj.wk_przewodnosc|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wk_przewodnosc is not None %}{% if odchylki.wk_przewodnosc %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Wygląd</td><td></td><td></td><td>{{ obj.wk_wyglad|upper|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wk_wyglad is not None %}{% if odchylki.wk_wyglad %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td rowspan="3" class="water-type">Woda po uzdatnianiu</td><td>pH (w temp 25°C)</td><td></td><td></td><td>{{ obj.wu_ph|default:"—" }}</td><td class="odchylki-cell"></td></tr>
+        <tr><td>Wapniowce (twardość całkowita)</td><td>°dH</td><td class="tolerance">&lt; 0,1</td><td>{{ obj.wu_wapnioce_dh|default:"—" }}</td><td class="odchylki-cell">{% if odchylki.wu_wapnioce_dh is not None %}{% if odchylki.wu_wapnioce_dh %}<span class="odch-ok">✓</span>{% else %}<span class="odch-err">✗</span>{% endif %}{% endif %}</td></tr>
+        <tr><td>Przewodność elektryczna (org.)</td><td>µS/cm</td><td></td><td>{{ obj.wu_przewodnosc|default:"—" }}</td><td class="odchylki-cell"></td></tr>
       </tbody>
     </table>
   </div>
@@ -179,4 +179,9 @@
 </div>
 {% endif %}
 
+<style>
+.odchylki-cell { text-align:center; font-size:15px; }
+.odch-ok  { color:#1a7a3c; font-weight:700; }
+.odch-err { color:#c0392b; font-weight:700; }
+</style>
 {% endblock %}

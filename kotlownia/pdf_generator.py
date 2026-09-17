@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-"""fpdf2-based PDF generator for Kotłownia CD-00001498-2 form."""
+"""fpdf2-based PDF generator for Kotłownia CD-00001498-4 form."""
 import io
 import math
 import base64
+from pathlib import Path
 from fpdf import FPDF, XPos, YPos
-
-ARIAL      = r'C:\Windows\Fonts\arial.ttf'
-ARIAL_BOLD = r'C:\Windows\Fonts\arialbd.ttf'
 
 MARGIN_LR   = 8
 MARGIN_TB   = 6
@@ -21,6 +19,37 @@ FS_SMALL = 5.5
 
 HEADER_BG = (240, 240, 240)
 DARK_RED  = (102, 28, 49)
+GREEN     = (26, 122, 60)
+RED_ERR   = (192, 57, 43)
+
+
+def _find_fonts():
+    """Return (regular_path, bold_path) for PDF Arial-compatible font."""
+    base = Path(__file__).parent / 'fonts'
+    if (base / 'arial.ttf').exists():
+        reg  = str(base / 'arial.ttf')
+        bold = str(base / 'arialbd.ttf') if (base / 'arialbd.ttf').exists() else reg
+        return reg, bold
+
+    win = Path(r'C:\Windows\Fonts')
+    if (win / 'arial.ttf').exists():
+        return str(win / 'arial.ttf'), str(win / 'arialbd.ttf')
+
+    linux_pairs = [
+        ('/usr/share/fonts/truetype/msttcorefonts/Arial.ttf',
+         '/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf'),
+        ('/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+         '/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf'),
+        ('/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+         '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'),
+        ('/usr/share/fonts/truetype/freefont/FreeSans.ttf',
+         '/usr/share/fonts/truetype/freefont/FreeSansBold.ttf'),
+    ]
+    for reg, bold in linux_pairs:
+        if Path(reg).exists():
+            return reg, (bold if Path(bold).exists() else reg)
+
+    return None, None
 
 
 def _v(val):
@@ -30,8 +59,13 @@ def _v(val):
 class KotlowniaPDF(FPDF):
     def __init__(self):
         super().__init__(orientation='P', unit='mm', format='A4')
-        self.add_font('Arial', '',  ARIAL)
-        self.add_font('Arial', 'B', ARIAL_BOLD)
+        reg, bold = _find_fonts()
+        if reg:
+            self.add_font('Arial', '',  reg)
+            self.add_font('Arial', 'B', bold)
+            self._font_name = 'Arial'
+        else:
+            self._font_name = 'Helvetica'
         self.set_margins(MARGIN_LR, MARGIN_TB)
         self.set_auto_page_break(False)
         self.add_page()
@@ -39,10 +73,9 @@ class KotlowniaPDF(FPDF):
     # ── primitives ────────────────────────────────────────────────────────
 
     def _f(self, bold=False, size=FS):
-        self.set_font('Arial', 'B' if bold else '', size)
+        self.set_font(self._font_name, 'B' if bold else '', size)
 
     def _advance(self, h):
-        """Move cursor to left margin, h mm lower."""
         self.set_xy(MARGIN_LR, self.get_y() + h)
 
     def _th(self, w, h, txt, align='L'):
@@ -57,7 +90,6 @@ class KotlowniaPDF(FPDF):
                   new_x=XPos.RIGHT, new_y=YPos.TOP)
 
     def _calc_lines(self, txt, w):
-        """Number of wrapped lines for txt in a cell of width w mm."""
         if not txt:
             return 1
         self._f(size=FS)
@@ -79,7 +111,6 @@ class KotlowniaPDF(FPDF):
         x0 = MARGIN_LR
         y0 = self.get_y()
 
-        # Logo
         self.rect(x0, y0, logo_w, h)
         self._f(bold=True, size=11)
         self.set_text_color(*DARK_RED)
@@ -88,7 +119,6 @@ class KotlowniaPDF(FPDF):
                   new_x=XPos.RIGHT, new_y=YPos.TOP)
         self.set_text_color(0, 0, 0)
 
-        # Title
         self.rect(x0 + logo_w, y0, title_w, h)
         self._f(bold=True, size=8.5)
         self.set_xy(x0 + logo_w + 1, y0 + 1)
@@ -98,11 +128,10 @@ class KotlowniaPDF(FPDF):
         self.set_text_color(80, 80, 80)
         self.set_x(x0 + logo_w + 1)
         self.cell(title_w - 2, 3.5,
-                  'CD-00001498-2   Formblatt / Formularz / Formulaire / Form',
+                  'CD-00001498-4   Formblatt / Formularz / Formulaire / Form',
                   new_x=XPos.LMARGIN, new_y=YPos.NEXT)
         self.set_text_color(0, 0, 0)
 
-        # Meta
         self.rect(x0 + logo_w + title_w, y0, meta_w, h)
         self._f(bold=False, size=FS_SMALL)
         self.set_xy(x0 + logo_w + title_w + 1, y0 + 1.5)
@@ -148,7 +177,6 @@ class KotlowniaPDF(FPDF):
 
         w4 = EFFECTIVE_W / 4
 
-        # Water/oil merged header
         self._f(bold=True, size=FS_SMALL)
         self.set_fill_color(*HEADER_BG)
         self.cell(w4 * 2, HDR_H, 'Woda miejska', border=1, align='C', fill=True,
@@ -168,7 +196,6 @@ class KotlowniaPDF(FPDF):
         self._td(w4, ROW_H, _v(obj.olej_licznik_litry))
         self._advance(ROW_H + 0.8)
 
-        # Gas table
         lbl_w = 28
         num_w = (EFFECTIVE_W - lbl_w) / 6
 
@@ -203,14 +230,15 @@ class KotlowniaPDF(FPDF):
 
         self._th(lp_w,  HDR_H, 'Lp.', align='C')
         self._th(kon_w, HDR_H, 'Kontrola')
-        self._th(war_w, HDR_H, 'Wartość')
+        self._th(war_w, HDR_H, 'Wartość / OK')
         self._th(uw_w,  HDR_H, 'UWAGI')
         self._advance(HDR_H)
 
         for row in b_rows:
+            wartosc = _v(row['wartosc'])
             self._td(lp_w,  ROW_H, str(row['lp']), align='C', bold=True)
             self._td(kon_w, ROW_H, row['label'])
-            self._td(war_w, ROW_H, _v(row['wartosc']))
+            self._td(war_w, ROW_H, wartosc)
             self._td(uw_w,  ROW_H, _v(row['uwagi']))
             self._advance(ROW_H)
 
@@ -251,7 +279,7 @@ class KotlowniaPDF(FPDF):
         if obj.laborant:
             lab_name = obj.laborant.get_full_name() or obj.laborant.username
 
-        self._sec('LABOLATORIUM:')
+        self._sec('LABORATORIUM:')
 
         w1 = EFFECTIVE_W / 2
         w2 = EFFECTIVE_W - w1
@@ -272,20 +300,22 @@ class KotlowniaPDF(FPDF):
 
         self.set_xy(MARGIN_LR, y0 + h + 0.5)
 
-    def build_section_c(self, obj):
+    def build_section_c(self, obj, odchylki):
         self._sec('C. Analiza laboratoryjna wody')
 
-        rodzaj_w = 20
-        ozn_w    = 66
-        jed_w    = 14
-        gran_w   = 22
-        wyn_w    = EFFECTIVE_W - rodzaj_w - ozn_w - jed_w - gran_w
+        rodzaj_w = 18
+        ozn_w    = 60
+        jed_w    = 13
+        gran_w   = 21
+        odch_w   = 12
+        wyn_w    = EFFECTIVE_W - rodzaj_w - ozn_w - jed_w - gran_w - odch_w
 
         self._th(rodzaj_w, HDR_H, 'Rodzaj')
         self._th(ozn_w,    HDR_H, 'Oznaczenie')
         self._th(jed_w,    HDR_H, '')
         self._th(gran_w,   HDR_H, 'Granica tolerancji', align='C')
         self._th(wyn_w,    HDR_H, 'Wynik pomiaru')
+        self._th(odch_w,   HDR_H, 'Odchyłki', align='C')
         self._advance(HDR_H)
 
         wyglad = ('Wygląd – Ok: bezbarwna, klarowna i pozbawiona substancji'
@@ -293,67 +323,61 @@ class KotlowniaPDF(FPDF):
 
         sections = [
             ('Woda zasilająca', [
-                ('pH (w temp 25°C)',                 '',       '> 9',       _v(obj.wz_ph)),
-                ('Wapniowce (twardość całkowita)',    '°dH',   '< 0,05',    _v(obj.wz_wapnioce_dh)),
-                ('Tlen O2',                          'mg/litr','< 0,1',     _v(obj.wz_tlen_mg)),
-                ('Przewodność elektryczna (org.)',    'µS/cm', '< 500',     _v(obj.wz_przewodnosc)),
-                ('Temperatura',                      '°C',    '25 °C',     _v(obj.wz_temperatura)),
-                (wyglad,                             '',      'Ok / Nie',  obj.wz_wyglad.upper() if obj.wz_wyglad else ''),
+                ('pH (w temp 25°C)',              '',       '> 9',       _v(obj.wz_ph),         odchylki.get('wz_ph')),
+                ('Wapniowce (twardość całkowita)', '°dH',   '< 0,05',    _v(obj.wz_wapnioce_dh), odchylki.get('wz_wapnioce_dh')),
+                ('Tlen O2',                        'mg/litr','< 0,1',    _v(obj.wz_tlen_mg),     odchylki.get('wz_tlen_mg')),
+                ('Przewodność elektryczna (org.)', 'µS/cm', '< 500',     _v(obj.wz_przewodnosc), odchylki.get('wz_przewodnosc')),
+                ('Temperatura',                    '°C',    '25 °C',     _v(obj.wz_temperatura), odchylki.get('wz_temperatura')),
+                (wyglad,                           '',      'Ok / Nie',  obj.wz_wyglad.upper() if obj.wz_wyglad else '', odchylki.get('wz_wyglad')),
             ]),
             ('Kondensat', [
-                ('pH (w temp 25°C)',                 '',       '',          _v(obj.k_ph)),
-                ('Wapniowce (twardość całkowita)',    '°dH',   '< 0,05',    _v(obj.k_wapnioce_dh)),
-                ('Przewodność elektryczna (org.)',    'µS/cm', '< 500',     _v(obj.k_przewodnosc)),
+                ('pH (w temp 25°C)',              '',       '',          _v(obj.k_ph),            None),
+                ('Wapniowce (twardość całkowita)', '°dH',   '< 0,05',   _v(obj.k_wapnioce_dh),  odchylki.get('k_wapnioce_dh')),
+                ('Przewodność elektryczna (org.)', 'µS/cm', '< 500',    _v(obj.k_przewodnosc),   odchylki.get('k_przewodnosc')),
             ]),
             ('Woda kotłowa', [
-                ('pH (w temp 25°C)',                 '',       '10,5 – 12', _v(obj.wk_ph)),
-                ('Wapniowce (twardość całkowita)',    '°dH',   '< 0,05',    _v(obj.wk_wapnioce_dh)),
-                ('Przewodność elektryczna (org.)',    'µS/cm', '30 – 8000', _v(obj.wk_przewodnosc)),
-                (wyglad,                             '',      'Ok / Nie',  obj.wk_wyglad.upper() if obj.wk_wyglad else ''),
+                ('pH (w temp 25°C)',              '',       '10,5 – 12', _v(obj.wk_ph),           odchylki.get('wk_ph')),
+                ('Wapniowce (twardość całkowita)', '°dH',   '< 0,05',   _v(obj.wk_wapnioce_dh),  odchylki.get('wk_wapnioce_dh')),
+                ('Przewodność elektryczna (org.)', 'µS/cm', '30 – 8000', _v(obj.wk_przewodnosc), odchylki.get('wk_przewodnosc')),
+                (wyglad,                           '',      'Ok / Nie',  obj.wk_wyglad.upper() if obj.wk_wyglad else '', odchylki.get('wk_wyglad')),
             ]),
             ('Woda po\nuzdatnianiu', [
-                ('pH (w temp 25°C)',                 '',       '',          _v(obj.wu_ph)),
-                ('Wapniowce (twardość całkowita)',    '°dH',   '< 0,1',     _v(obj.wu_wapnioce_dh)),
-                ('Przewodność elektryczna (org.)',    'µS/cm', '',          _v(obj.wu_przewodnosc)),
+                ('pH (w temp 25°C)',              '',       '',          _v(obj.wu_ph),           None),
+                ('Wapniowce (twardość całkowita)', '°dH',   '< 0,1',    _v(obj.wu_wapnioce_dh),  odchylki.get('wu_wapnioce_dh')),
+                ('Przewodność elektryczna (org.)', 'µS/cm', '',         _v(obj.wu_przewodnosc),   None),
             ]),
         ]
 
         for rodzaj, rows in sections:
-            # Calculate height of each row based on Oznaczenie text length
             row_heights = []
-            for ozn, _jed, _gran, _wyn in rows:
+            for ozn, _jed, _gran, _wyn, _odch in rows:
                 lines = self._calc_lines(ozn, ozn_w)
                 row_heights.append(lines * ROW_H)
 
-            # Rodzaj cell height also needs wrapping check
-            rodzaj_lines = self._calc_lines(rodzaj.replace('\n', ' '), rodzaj_w)
             block_h  = sum(row_heights)
-            x0, y0   = MARGIN_LR, self.get_y()
-            cx_jed   = x0 + rodzaj_w + ozn_w
-            cx_gran  = cx_jed + jed_w
-            cx_wyn   = cx_gran + gran_w
+            x0, y0  = MARGIN_LR, self.get_y()
+            cx_jed  = x0 + rodzaj_w + ozn_w
+            cx_gran = cx_jed + jed_w
+            cx_wyn  = cx_gran + gran_w
+            cx_odch = cx_wyn + wyn_w
 
-            # Merged Rodzaj cell
             self.rect(x0, y0, rodzaj_w, block_h)
             self._f(bold=True, size=FS)
             self.set_xy(x0 + 0.5, y0 + 0.5)
             self.multi_cell(rodzaj_w - 1, ROW_H, rodzaj, border=0, align='C')
 
-            # Detail rows
             cum_y = y0
-            for (ozn, jed, gran, wyn), rh in zip(rows, row_heights):
-                # borders
+            for (ozn, jed, gran, wyn, odch), rh in zip(rows, row_heights):
                 self.rect(x0 + rodzaj_w, cum_y, ozn_w,  rh)
                 self.rect(cx_jed,        cum_y, jed_w,  rh)
                 self.rect(cx_gran,       cum_y, gran_w, rh)
                 self.rect(cx_wyn,        cum_y, wyn_w,  rh)
+                self.rect(cx_odch,       cum_y, odch_w, rh)
 
-                # Oznaczenie — multi_cell for wrap
                 self._f(size=FS)
                 self.set_xy(x0 + rodzaj_w + 0.5, cum_y + 0.4)
                 self.multi_cell(ozn_w - 1, ROW_H, ozn, border=0)
 
-                # Single-value cells — vertically centered
                 for cx, cw, txt, align in [
                     (cx_jed,  jed_w,  jed,  'C'),
                     (cx_gran, gran_w, gran, 'C'),
@@ -361,6 +385,20 @@ class KotlowniaPDF(FPDF):
                 ]:
                     self.set_xy(cx + 0.5, cum_y + (rh - FS * 0.352778) / 2)
                     self.cell(cw - 1, FS * 0.352778, txt, align=align)
+
+                # Odchyłki cell
+                if odch is True:
+                    self.set_text_color(*GREEN)
+                    odch_txt = 'OK'
+                elif odch is False:
+                    self.set_text_color(*RED_ERR)
+                    odch_txt = 'NOK'
+                else:
+                    odch_txt = ''
+                self._f(bold=True, size=FS_SMALL)
+                self.set_xy(cx_odch + 0.5, cum_y + (rh - FS_SMALL * 0.352778) / 2)
+                self.cell(odch_w - 1, FS_SMALL * 0.352778, odch_txt, align='C')
+                self.set_text_color(0, 0, 0)
 
                 cum_y += rh
 
@@ -372,13 +410,13 @@ class KotlowniaPDF(FPDF):
         self._f(bold=False, size=FS_SMALL)
         self.set_text_color(80, 80, 80)
         self.cell(EFFECTIVE_W * 0.8, 3.5,
-                  'Gültig ab | Ważne od | Valable à partir du | Valid from: 23.07.2024',
+                  'Gültig ab | Ważne od | Valable à partir du | Valid from: 17.09.2026',
                   border='T', new_x=XPos.RIGHT, new_y=YPos.TOP)
         self.cell(EFFECTIVE_W * 0.2, 3.5, '1 | 1', border='T', align='R')
         self.set_text_color(0, 0, 0)
 
 
-def generate_formularz_pdf(obj, b_rows, now_str):
+def generate_formularz_pdf(obj, b_rows, odchylki, now_str):
     pdf = KotlowniaPDF()
     pdf.build_header(obj, now_str)
     pdf.build_dzial_techniczny(obj)
@@ -391,7 +429,7 @@ def generate_formularz_pdf(obj, b_rows, now_str):
     pdf.build_signature(obj, 'podpis_techniczny', tech_name, margin_after=1.5)
 
     pdf.build_laboratorium(obj)
-    pdf.build_section_c(obj)
+    pdf.build_section_c(obj, odchylki)
 
     lab_name = ''
     if obj.laborant:

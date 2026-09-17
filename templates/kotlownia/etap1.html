@@ -6,7 +6,7 @@
 <div class="page-header">
   <div class="page-header-left">
     <h1>Nadzór nad kotłownią</h1>
-    <div class="doc-number">CD-00001498-2 · <strong>Etap 1 – Dział Techniczny</strong></div>
+    <div class="doc-number">CD-00001498-4 · <strong>Etap 1 – Dział Techniczny</strong></div>
   </div>
   <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Wróć</a>
 </div>
@@ -91,7 +91,7 @@
           <tr>
             <th style="width:36px;text-align:center">Lp.</th>
             <th style="width:40%">Kontrola</th>
-            <th style="width:18%">Wartość</th>
+            <th style="width:18%">Wartość / OK</th>
             <th>Uwagi</th>
           </tr>
         </thead>
@@ -100,13 +100,13 @@
           <tr><td class="b-lp">2</td><td>Regulator poziomu wody</td><td>{{ form.b2_wartosc }}</td><td>{{ form.b2_uwagi }}</td></tr>
           <tr><td class="b-lp">3</td><td>Regulator temperatury lub ciśnienia</td><td>{{ form.b3_wartosc }}</td><td>{{ form.b3_uwagi }}</td></tr>
           <tr><td class="b-lp">4</td><td>Urządzenie do opróżniania lub odsalania kotła</td><td>{{ form.b4_wartosc }}</td><td>{{ form.b4_uwagi }}</td></tr>
-          <tr><td class="b-lp">5</td><td>Aparatura kontroli obecności zanieczyszczeń stałych w wodzie kotłowej</td><td>{{ form.b5_wartosc }}</td><td>{{ form.b5_uwagi }}</td></tr>
-          <tr><td class="b-lp">6</td><td>Regulacja palnika (elementy wykonawcze do sterowania powietrzem lub paliwem)</td><td>{{ form.b6_wartosc }}</td><td>{{ form.b6_uwagi }}</td></tr>
-          <tr><td class="b-lp">7</td><td>Wentylator powietrza, spalania, wentylator zapłonowy, wentylator powietrza chłodzącego</td><td>{{ form.b7_wartosc }}</td><td>{{ form.b7_uwagi }}</td></tr>
-          <tr><td class="b-lp">8</td><td>Awaryjne urządzenie odcinające</td><td>{{ form.b8_wartosc }}</td><td>{{ form.b8_uwagi }}</td></tr>
-          <tr><td class="b-lp">9</td><td>Zapłon</td><td>{{ form.b9_wartosc }}</td><td>{{ form.b9_uwagi }}</td></tr>
-          <tr><td class="b-lp">10</td><td>Wentylacja</td><td>{{ form.b10_wartosc }}</td><td>{{ form.b10_uwagi }}</td></tr>
-          <tr><td class="b-lp">11</td><td>Kontrola płomienia</td><td>{{ form.b11_wartosc }}</td><td>{{ form.b11_uwagi }}</td></tr>
+          <tr><td class="b-lp">5</td><td>Aparatura kontroli obecności zanieczyszczeń stałych w wodzie kotłowej</td><td class="td-radio">{{ form.b5_wartosc }}</td><td>{{ form.b5_uwagi }}</td></tr>
+          <tr><td class="b-lp">6</td><td>Regulacja palnika (elementy wykonawcze do sterowania powietrzem lub paliwem)</td><td class="td-radio">{{ form.b6_wartosc }}</td><td>{{ form.b6_uwagi }}</td></tr>
+          <tr><td class="b-lp">7</td><td>Wentylator powietrza, spalania, wentylator zapłonowy, wentylator powietrza chłodzącego</td><td class="td-radio">{{ form.b7_wartosc }}</td><td>{{ form.b7_uwagi }}</td></tr>
+          <tr><td class="b-lp">8</td><td>Awaryjne urządzenie odcinające</td><td class="td-radio">{{ form.b8_wartosc }}</td><td>{{ form.b8_uwagi }}</td></tr>
+          <tr><td class="b-lp">9</td><td>Zapłon</td><td class="td-radio">{{ form.b9_wartosc }}</td><td>{{ form.b9_uwagi }}</td></tr>
+          <tr><td class="b-lp">10</td><td>Wentylacja</td><td class="td-radio">{{ form.b10_wartosc }}</td><td>{{ form.b10_uwagi }}</td></tr>
+          <tr><td class="b-lp">11</td><td>Kontrola płomienia</td><td class="td-radio">{{ form.b11_wartosc }}</td><td>{{ form.b11_uwagi }}</td></tr>
           <tr><td class="b-lp">12</td><td>Ocena jakości spalania</td><td>{{ form.b12_wartosc }}</td><td>{{ form.b12_uwagi }}</td></tr>
           <tr><td class="b-lp">13</td><td>Stan licznika: całkowita liczba godzin pracy</td><td>{{ form.b13_wartosc }}</td><td>{{ form.b13_uwagi }}</td></tr>
           <tr><td class="b-lp">14</td><td>Stan licznika: całkowita liczba godzin pracy palnika</td><td>{{ form.b14_wartosc }}</td><td>{{ form.b14_uwagi }}</td></tr>
@@ -139,5 +139,29 @@
 </form>
 
 <script src="{% static 'js/signature.js' %}"></script>
-<script>initSignaturePad('sig-canvas-tech', 'sig-input-tech', 'sig-clear-tech');</script>
+<script>
+initSignaturePad('sig-canvas-tech', 'sig-input-tech', 'sig-clear-tech');
+
+// Auto-fill date and time if creating new form (no existing values)
+(function() {
+  var dateInput  = document.querySelector('[name="data"]');
+  var timeInput  = document.querySelector('[name="godzina"]');
+  var now = new Date();
+  if (dateInput && !dateInput.value) {
+    var y = now.getFullYear();
+    var m = String(now.getMonth() + 1).padStart(2, '0');
+    var d = String(now.getDate()).padStart(2, '0');
+    dateInput.value = y + '-' + m + '-' + d;
+  }
+  if (timeInput && !timeInput.value) {
+    var hh = String(now.getHours()).padStart(2, '0');
+    var mm = String(now.getMinutes()).padStart(2, '0');
+    timeInput.value = hh + ':' + mm;
+  }
+})();
+</script>
+<style>
+.td-radio ul { list-style:none; padding:0; margin:0; display:flex; gap:10px; }
+.td-radio ul li { display:flex; align-items:center; gap:4px; font-size:13px; }
+</style>
 {% endblock %}

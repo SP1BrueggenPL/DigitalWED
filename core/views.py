@@ -30,7 +30,7 @@ ALL_PROCESSES = [
     {
         'id': 'kotlownia',
         'name': 'Nadzór nad kotłownią',
-        'doc_number': 'CD-00001498-2',
+        'doc_number': 'CD-00001498-4',
         'description': 'Formularz kontroli stanu technicznego kotłowni: zapasy surowców, urządzenia kotłowe, analiza laboratoryjna wody.',
         'url': 'kotlownia:list',
         'group': 'Kotłownia',

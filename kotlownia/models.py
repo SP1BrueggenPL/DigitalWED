@@ -113,3 +113,20 @@ class KotlowniaFormularz(models.Model):
 
     def __str__(self):
         return f'Kotłownia {self.data} {self.godzina}'
+
+
+class KotlowniaUstawienia(models.Model):
+    email_odbiorca_1 = models.EmailField(blank=True, verbose_name='Email odbiorcy 1')
+    email_odbiorca_2 = models.EmailField(blank=True, verbose_name='Email odbiorcy 2')
+
+    class Meta:
+        verbose_name = 'Ustawienia Kotłowni'
+        verbose_name_plural = 'Ustawienia Kotłowni'
+
+    def __str__(self):
+        return 'Ustawienia Kotłowni'
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj

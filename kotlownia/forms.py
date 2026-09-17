@@ -35,8 +35,14 @@ class EtapTechnicznyForm(forms.ModelForm):
             self.fields[f'gaz_wypelnienie_{i}'].widget = _num()
         for f in ['woda_socjalna_m3', 'woda_produkcja_m3', 'olej_poziom_cm', 'olej_licznik_litry']:
             self.fields[f].widget = _num()
-        for i in range(1, 16):
+        for i in list(range(1, 5)) + list(range(12, 16)):
             self.fields[f'b{i}_wartosc'].widget = forms.TextInput(attrs={'class': 'form-control'})
+            self.fields[f'b{i}_uwagi'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
+        for i in range(5, 12):
+            self.fields[f'b{i}_wartosc'].widget = forms.RadioSelect(
+                choices=[('OK', 'OK'), ('NIE OK', 'NIE OK')],
+                attrs={'class': 'radio-ok-nie-ok'},
+            )
             self.fields[f'b{i}_uwagi'].widget = forms.Textarea(attrs={'class': 'form-control', 'rows': 2})
 
 
