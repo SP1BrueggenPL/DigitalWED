@@ -111,7 +111,8 @@ def sprawdz_odchylki(obj):
 
 
 def _wyslij_email_kotlownia(obj, all_ok, deviations):
-    import os
+    import os, base64
+    from django.utils.timezone import localtime, now as dj_now
     connection_string = os.environ.get('AZURE_CONNECTION_STRING', '')
     sender_address    = os.environ.get('AZURE_SENDER_ADDRESS', '')
     if not connection_string or not sender_address:
@@ -151,6 +152,23 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
 
     body = '\n'.join(lines)
 
+    # Generate PDF attachment
+    attachments = []
+    try:
+        from .pdf_generator import generate_formularz_pdf
+        _, odchylki_status, _ = sprawdz_odchylki(obj)
+        now_str = localtime(dj_now()).strftime('%d.%m.%Y %H:%M')
+        b_rows = _build_b_rows(obj)
+        pdf_bytes = generate_formularz_pdf(obj, b_rows, odchylki_status, now_str)
+        pdf_filename = f'CD-00001498-4_{obj.data.strftime("%Y-%m-%d")}.pdf' if obj.data else 'CD-00001498-4.pdf'
+        attachments = [{
+            'name': pdf_filename,
+            'contentType': 'application/pdf',
+            'contentInBase64': base64.b64encode(pdf_bytes).decode('utf-8'),
+        }]
+    except Exception as exc:
+        logger.error('Kotlownia email: nie udało się wygenerować PDF: %s', exc)
+
     try:
         from azure.communication.email import EmailClient
         client = EmailClient.from_connection_string(connection_string)
@@ -159,6 +177,8 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
             'recipients': {'to': [{'address': addr} for addr in recipients]},
             'content': {'subject': subject, 'plainText': body},
         }
+        if attachments:
+            message['attachments'] = attachments
         poller = client.begin_send(message)
         poller.result()
     except Exception as exc:
