@@ -224,6 +224,7 @@ def formularz_list(request):
         return render(request, 'kotlownia/list_lab.html', {
             'pending': pending, 'done': done,
         })
+    formularze = KotlowniaFormularz.objects.all().order_by('-created_at')
     for f in formularze:
         if f.status == KotlowniaFormularz.STATUS_ZAKONCZONY:
             f.odchylki_ok = sprawdz_odchylki(f)[0]
