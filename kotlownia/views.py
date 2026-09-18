@@ -321,12 +321,18 @@ def etap_laboratorium(request, pk):
 
     if request.method == 'POST':
         form = EtapLaboratoriumForm(request.POST, instance=obj)
+        action = request.POST.get('action', 'finalize')
         if form.is_valid():
             saved = form.save(commit=False)
             saved.laborant = request.user
             sig = request.POST.get('podpis_laboratorium_data', '').strip()
             if sig and not sig.endswith(','):
                 saved.podpis_laboratorium = sig
+            if action == 'draft':
+                saved.status = KotlowniaFormularz.STATUS_LABORATORIUM
+                saved.save()
+                messages.success(request, 'Wersja robocza zapisana.')
+                return redirect('kotlownia:etap2', pk=saved.pk)
             saved.status = KotlowniaFormularz.STATUS_ZAKONCZONY
             saved.save()
             all_ok, _status, deviations = sprawdz_odchylki(saved)

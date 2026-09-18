@@ -136,9 +136,11 @@
     </div>
   </div>
 
+  <input type="hidden" name="action" id="form-action" value="draft">
   <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
     <a href="{% url 'kotlownia:detail' obj.pk %}" class="btn btn-secondary">Anuluj</a>
-    <button type="submit" class="btn btn-primary">✓ Zatwierdź i zakończ formularz</button>
+    <button type="button" class="btn btn-secondary" id="btn-draft">💾 Zapisz wersję roboczą</button>
+    <button type="button" class="btn btn-primary" id="btn-finalize">✓ Zatwierdź i zakończ formularz</button>
   </div>
 </form>
 
@@ -156,6 +158,24 @@ initSignaturePad('sig-canvas-lab', 'sig-input-lab', 'sig-clear-lab');
     timeInput.value = hh + ':' + mm;
   }
 })();
+
+// Block Enter from submitting
+document.querySelector('form').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+  }
+});
+
+document.getElementById('btn-draft').addEventListener('click', function() {
+  document.getElementById('form-action').value = 'draft';
+  document.querySelector('form').submit();
+});
+
+document.getElementById('btn-finalize').addEventListener('click', function() {
+  if (!confirm('Zatwierdź i zamknij formularz? Tej operacji nie można cofnąć.')) return;
+  document.getElementById('form-action').value = 'finalize';
+  document.querySelector('form').submit();
+});
 </script>
 <style>
 .odchylki-cell { text-align:center; font-size:15px; }
