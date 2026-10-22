@@ -18,13 +18,11 @@ def _fc(widget=None, **kwargs):
 # ── FORMULARZE ────────────────────────────────────────────────
 
 class UserCreateForm(forms.Form):
-    username   = forms.CharField(max_length=150, label='Nazwa użytkownika', widget=_fc())
-    first_name = forms.CharField(max_length=150, label='Imię', required=False, widget=_fc())
-    last_name  = forms.CharField(max_length=150, label='Nazwisko', required=False, widget=_fc())
-    email      = forms.EmailField(label='E-mail', required=False, widget=_fc(forms.EmailInput))
-    password   = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='Hasło tymczasowe')
-    password2  = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'form-control'}), label='Powtórz hasło')
-    klaster    = forms.ModelChoiceField(
+    first_name  = forms.CharField(max_length=150, label='Imię', required=False, widget=_fc())
+    last_name   = forms.CharField(max_length=150, label='Nazwisko', required=False, widget=_fc())
+    email       = forms.EmailField(label='E-mail', required=False, widget=_fc(forms.EmailInput))
+    chip_number = forms.CharField(max_length=20, label='Numer chip *', widget=_fc(placeholder='np. 12345'))
+    klaster     = forms.ModelChoiceField(
         queryset=Klaster.objects.all(),
         required=False,
         label='Klaster (opcjonalnie)',
@@ -38,17 +36,12 @@ class UserCreateForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
 
-    def clean(self):
-        cd = super().clean()
-        if cd.get('password') != cd.get('password2'):
-            raise forms.ValidationError('Hasła się nie zgadzają.')
-        return cd
-
-    def clean_username(self):
-        u = self.cleaned_data['username']
-        if User.objects.filter(username=u).exists():
-            raise forms.ValidationError('Użytkownik o tej nazwie już istnieje.')
-        return u
+    def clean_chip_number(self):
+        chip = self.cleaned_data['chip_number'].strip()
+        from .models import UserProfile
+        if UserProfile.objects.filter(chip_number=chip).exists():
+            raise forms.ValidationError('Użytkownik z tym numerem chip już istnieje.')
+        return chip
 
 
 class UserEditForm(forms.Form):
@@ -114,22 +107,23 @@ def user_create(request):
     if request.method == 'POST':
         form = UserCreateForm(request.POST)
         if form.is_valid():
+            chip = form.cleaned_data['chip_number']
             u = User.objects.create_user(
-                username=form.cleaned_data['username'],
-                password=form.cleaned_data['password'],
+                username=f'chip_{chip}',
+                password=None,
                 first_name=form.cleaned_data['first_name'],
                 last_name=form.cleaned_data['last_name'],
                 email=form.cleaned_data['email'],
             )
-            # Klaster ma priorytet; jeśli nie wybrano — bierz ręczne role
+            u.set_unusable_password()
+            u.save()
             klaster = form.cleaned_data.get('klaster')
             if klaster:
                 u.groups.set(klaster.grupy.all())
             else:
                 u.groups.set(form.cleaned_data['groups'])
-            u.save()
-            UserProfile.objects.create(user=u, must_change_password=True)
-            messages.success(request, f'Użytkownik „{u.username}" utworzony. Przy pierwszym logowaniu zostanie poproszony o zmianę hasła.')
+            UserProfile.objects.create(user=u, chip_number=chip)
+            messages.success(request, f'Użytkownik chip_{chip} utworzony. Logowanie przez numer chip: {chip}.')
             return redirect('user_list')
     else:
         form = UserCreateForm()

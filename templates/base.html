@@ -19,7 +19,7 @@
   <div class="topbar-user">
     <span>{{ user.get_full_name|default:user.username }}</span>
     <span>·</span>
-    <a href="{% url 'logout' %}">Wyloguj</a>
+    <form method="post" action="{% url 'logout' %}" style="display:inline">{% csrf_token %}<button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;padding:0;font:inherit;text-decoration:underline">Wyloguj</button></form>
   </div>
   {% endif %}
 </header>
@@ -61,9 +61,7 @@
       </a>
       {% endif %}
     {% endif %}
-    <a href="{% url 'logout' %}" class="sidebar-link">
-      <span class="sidebar-icon">↩</span> Wyloguj
-    </a>
+    <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="sidebar-link" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:0;font:inherit;color:inherit"><span class="sidebar-icon">↩</span> Wyloguj</button></form>
   </div>
 </nav>
 {% endif %}
