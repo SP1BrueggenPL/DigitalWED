@@ -8,7 +8,7 @@
     <div class="doc-number">CD-00001498-4 · Dashboard</div>
   </div>
   <div style="display:flex;gap:8px">
-    {% if is_superuser %}
+    {% if is_admin %}
     <a href="{% url 'kotlownia:ustawienia' %}" class="btn btn-secondary">⚙ Ustawienia</a>
     {% endif %}
     <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Lista</a>

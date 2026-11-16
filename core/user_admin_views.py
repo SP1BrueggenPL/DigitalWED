@@ -4,10 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django import forms
 from .models import UserProfile, Klaster
-
-
-def _staff_only(user):
-    return user.is_superuser or user.groups.filter(name='Administratorzy').exists()
+from .permissions import is_admin as _staff_only
 
 
 def _fc(widget=None, **kwargs):
@@ -17,7 +14,7 @@ def _fc(widget=None, **kwargs):
 
 # ── FORMULARZE ────────────────────────────────────────────────
 
-FIXED_GROUPS = ('Kotłownia', 'Engineering', 'Laboratory')
+FIXED_GROUPS = ('Administrator', 'Kotłownia', 'Engineering', 'Laboratory')
 
 
 class UserCreateForm(forms.Form):
@@ -44,6 +41,7 @@ class UserEditForm(forms.Form):
     first_name = forms.CharField(max_length=150, label='Imię', required=False, widget=_fc())
     last_name  = forms.CharField(max_length=150, label='Nazwisko', required=False, widget=_fc())
     email      = forms.EmailField(label='E-mail', required=False, widget=_fc(forms.EmailInput))
+    chip_number = forms.CharField(max_length=20, label='Numer chip', widget=_fc(placeholder='np. 12345'))
     groups = forms.ModelMultipleChoiceField(
         queryset=Group.objects.filter(name__in=FIXED_GROUPS),
         required=False,
@@ -51,6 +49,16 @@ class UserEditForm(forms.Form):
         widget=forms.CheckboxSelectMultiple,
     )
     is_active = forms.BooleanField(required=False, label='Konto aktywne')
+
+    def __init__(self, *args, edit_user, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.edit_user = edit_user
+
+    def clean_chip_number(self):
+        chip = self.cleaned_data['chip_number'].strip()
+        if UserProfile.objects.filter(chip_number=chip).exclude(user=self.edit_user).exists():
+            raise forms.ValidationError('Użytkownik z tym numerem chip już istnieje.')
+        return chip
 
 
 class PasswordResetForm(forms.Form):
@@ -122,8 +130,9 @@ def user_create(request):
 @user_passes_test(_staff_only)
 def user_edit(request, pk):
     u = get_object_or_404(User, pk=pk)
+    profile, _ = UserProfile.objects.get_or_create(user=u)
     if request.method == 'POST':
-        form = UserEditForm(request.POST)
+        form = UserEditForm(request.POST, edit_user=u)
         if form.is_valid():
             u.first_name = form.cleaned_data['first_name']
             u.last_name  = form.cleaned_data['last_name']
@@ -131,13 +140,16 @@ def user_edit(request, pk):
             u.is_active  = form.cleaned_data['is_active']
             u.groups.set(form.cleaned_data['groups'])
             u.save()
+            profile.chip_number = form.cleaned_data['chip_number']
+            profile.save()
             messages.success(request, f'Użytkownik „{u.username}" zaktualizowany.')
             return redirect('user_list')
     else:
-        form = UserEditForm(initial={
+        form = UserEditForm(edit_user=u, initial={
             'first_name': u.first_name,
             'last_name':  u.last_name,
             'email':      u.email,
+            'chip_number': profile.chip_number,
             'groups':     u.groups.filter(name__in=FIXED_GROUPS),
             'is_active':  u.is_active,
         })

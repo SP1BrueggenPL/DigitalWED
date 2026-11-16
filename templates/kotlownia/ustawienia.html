@@ -15,22 +15,52 @@
   <div class="card-body">
     <p style="font-size:13px;color:var(--brand-muted);margin-bottom:20px">
       Po zakończeniu Etapu 2 (laboratorium) e-mail z wynikami jest wysyłany automatycznie
-      do obu adresów – zarówno gdy wyniki są w normie, jak i gdy wystąpią odchyłki.
+      do wszystkich poniższych adresów – zarówno gdy wyniki są w normie, jak i gdy wystąpią odchyłki.
     </p>
-    <form method="post" novalidate>
+    <form method="post" novalidate id="ustawienia-form">
       {% csrf_token %}
-      <div class="form-group" style="margin-bottom:16px">
-        <label>E-mail odbiorcy 1</label>
-        <input type="email" name="email_odbiorca_1" class="form-control"
-               value="{{ obj.email_odbiorca_1 }}" placeholder="imie.nazwisko@brueggen.com">
+      <div id="odbiorcy-list">
+        {% for email in odbiorcy %}
+        <div class="odbiorca-row">
+          <input type="email" name="odbiorcy" class="form-control" value="{{ email }}" placeholder="imie.nazwisko@brueggen.com">
+          <button type="button" class="btn btn-secondary btn-sm odbiorca-remove" title="Usuń odbiorcę">✕</button>
+        </div>
+        {% endfor %}
       </div>
-      <div class="form-group" style="margin-bottom:24px">
-        <label>E-mail odbiorcy 2</label>
-        <input type="email" name="email_odbiorca_2" class="form-control"
-               value="{{ obj.email_odbiorca_2 }}" placeholder="imie.nazwisko@brueggen.com">
-      </div>
-      <button type="submit" class="btn btn-primary">Zapisz</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="odbiorca-add" style="margin-bottom:24px">+ Dodaj odbiorcę</button>
+      <div><button type="submit" class="btn btn-primary">Zapisz</button></div>
     </form>
   </div>
 </div>
+
+<template id="odbiorca-template">
+  <div class="odbiorca-row">
+    <input type="email" name="odbiorcy" class="form-control" placeholder="imie.nazwisko@brueggen.com">
+    <button type="button" class="btn btn-secondary btn-sm odbiorca-remove" title="Usuń odbiorcę">✕</button>
+  </div>
+</template>
+
+<script>
+(function() {
+  var list = document.getElementById('odbiorcy-list');
+  var tpl = document.getElementById('odbiorca-template');
+  function addRow() {
+    list.appendChild(tpl.content.cloneNode(true));
+    list.lastElementChild.querySelector('input').focus();
+  }
+  document.getElementById('odbiorca-add').addEventListener('click', addRow);
+  list.addEventListener('click', function(e) {
+    if (e.target.classList.contains('odbiorca-remove')) {
+      e.target.closest('.odbiorca-row').remove();
+    }
+  });
+  if (!list.children.length) {
+    list.appendChild(tpl.content.cloneNode(true));
+  }
+})();
+</script>
+<style>
+.odbiorca-row { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+.odbiorca-row .form-control { flex:1; }
+</style>
 {% endblock %}

@@ -1,4 +1,5 @@
 from .models import Powiadomienie
+from .permissions import is_admin
 
 
 def powiadomienia(request):
@@ -7,4 +8,4 @@ def powiadomienia(request):
     nieprzeczytane = Powiadomienie.objects.filter(
         odbiorca=request.user, przeczytane=False
     ).count()
-    return {'nieprzeczytane_count': nieprzeczytane}
+    return {'nieprzeczytane_count': nieprzeczytane, 'is_admin': is_admin(request.user)}

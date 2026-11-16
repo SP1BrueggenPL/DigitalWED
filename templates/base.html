@@ -49,17 +49,10 @@
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">System</div>
-    {% if user.is_staff or user.groups.all|length > 0 %}
-      {% for g in user.groups.all %}{% if g.name == 'Administratorzy' %}
-      <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user_' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="sidebar-icon">👤</span> Użytkownicy i role
-      </a>
-      {% endif %}{% endfor %}
-      {% if user.is_superuser %}
-      <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user_' in request.resolver_match.url_name %}active{% endif %}">
-        <span class="sidebar-icon">👤</span> Użytkownicy i role
-      </a>
-      {% endif %}
+    {% if is_admin %}
+    <a href="{% url 'user_list' %}" class="sidebar-link {% if 'user_' in request.resolver_match.url_name %}active{% endif %}">
+      <span class="sidebar-icon">👤</span> Użytkownicy i role
+    </a>
     {% endif %}
     <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit" class="sidebar-link" style="background:none;border:none;width:100%;text-align:left;cursor:pointer;padding:0;font:inherit;color:inherit"><span class="sidebar-icon">↩</span> Wyloguj</button></form>
   </div>

@@ -10,6 +10,10 @@ from .models import KotlowniaFormularz, KotlowniaUstawienia
 from .forms import EtapTechnicznyForm, EtapLaboratoriumForm
 from core.notifications import powiadom_laboratorium
 from core.models import Powiadomienie
+from core.permissions import is_admin
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +124,7 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
         return
 
     ustawienia = KotlowniaUstawienia.get()
-    recipients = [e for e in [ustawienia.email_odbiorca_1, ustawienia.email_odbiorca_2] if e]
+    recipients = list(ustawienia.odbiorcy)
     if not recipients:
         return
 
@@ -523,14 +527,40 @@ def dashboard(request):
 
 @login_required
 def ustawienia(request):
-    if not request.user.is_superuser:
+    if not is_admin(request.user):
         messages.error(request, 'Brak uprawnień do ustawień.')
-        return redirect('kotlownia:list')
+        return redirect('dashboard')
     obj = KotlowniaUstawienia.get()
+    odbiorcy = obj.odbiorcy
     if request.method == 'POST':
-        obj.email_odbiorca_1 = request.POST.get('email_odbiorca_1', '').strip()
-        obj.email_odbiorca_2 = request.POST.get('email_odbiorca_2', '').strip()
-        obj.save()
-        messages.success(request, 'Ustawienia zapisane.')
-        return redirect('kotlownia:ustawienia')
-    return render(request, 'kotlownia/ustawienia.html', {'obj': obj})
+        odbiorcy = list(dict.fromkeys(
+            e.strip() for e in request.POST.getlist('odbiorcy') if e.strip()
+        ))
+        invalid = []
+        for e in odbiorcy:
+            try:
+                validate_email(e)
+            except ValidationError:
+                invalid.append(e)
+        if invalid:
+            messages.error(request, 'Nieprawidłowy adres e-mail: ' + ', '.join(invalid))
+        else:
+            obj.odbiorcy = odbiorcy
+            obj.save()
+            messages.success(request, 'Ustawienia zapisane.')
+            return redirect('kotlownia:ustawienia')
+    return render(request, 'kotlownia/ustawienia.html', {'odbiorcy': odbiorcy})
+
+
+@login_required
+@require_POST
+def formularz_delete(request, pk):
+    if not request.user.is_superuser:
+        messages.error(request, 'Brak uprawnień do usuwania wpisów.')
+        return redirect('kotlownia:list')
+    obj = get_object_or_404(KotlowniaFormularz, pk=pk)
+    logger.info('formularz deleted pk=%s data=%s by=%s', obj.pk, obj.data, request.user)
+    Powiadomienie.objects.filter(url=reverse('kotlownia:etap2', args=[pk])).delete()
+    obj.delete()
+    messages.success(request, 'Wpis usunięty.')
+    return redirect('kotlownia:list')

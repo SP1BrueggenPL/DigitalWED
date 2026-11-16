@@ -116,8 +116,7 @@ class KotlowniaFormularz(models.Model):
 
 
 class KotlowniaUstawienia(models.Model):
-    email_odbiorca_1 = models.EmailField(blank=True, verbose_name='Email odbiorcy 1')
-    email_odbiorca_2 = models.EmailField(blank=True, verbose_name='Email odbiorcy 2')
+    odbiorcy = models.JSONField(default=list, blank=True, verbose_name='Odbiorcy e-mail')
 
     class Meta:
         verbose_name = 'Ustawienia Kotłowni'

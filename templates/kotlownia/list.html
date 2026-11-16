@@ -8,7 +8,7 @@
     <div class="doc-number">CD-00001498-4 · Formblatt / Formularz / Formulaire / Form</div>
   </div>
   <div style="display:flex;gap:8px">
-    {% if is_superuser %}
+    {% if is_admin %}
     <a href="{% url 'kotlownia:ustawienia' %}" class="btn btn-secondary">⚙ Ustawienia</a>
     {% endif %}
     <a href="{% url 'kotlownia:new' %}" class="btn btn-primary">+ Nowy formularz</a>
@@ -68,6 +68,13 @@
               <a href="{% url 'kotlownia:etap2' f.pk %}" class="btn btn-primary btn-sm">Etap 2</a>
             {% elif f.status == 'zakonczony' %}
               <a href="{% url 'kotlownia:pdf' f.pk %}" class="btn btn-secondary btn-sm">⬇ Pobierz</a>
+            {% endif %}
+            {% if user.is_superuser %}
+            <form method="post" action="{% url 'kotlownia:delete' f.pk %}" style="display:inline"
+                  onsubmit="return confirm('Usunąć wpis z {{ f.data|date:"d.m.Y" }} {{ f.godzina|time:"H:i" }}? Tej operacji nie można cofnąć.');">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-secondary btn-sm" style="color:#c0392b">✕ Usuń</button>
+            </form>
             {% endif %}
           </td>
         </tr>
