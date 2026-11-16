@@ -322,6 +322,8 @@ def etap_laboratorium(request, pk):
     if request.method == 'POST':
         form = EtapLaboratoriumForm(request.POST, instance=obj)
         action = request.POST.get('action', 'finalize')
+        logger.info('etap2 POST pk=%s action=%s user=%s valid=%s errors=%s',
+                    pk, action, request.user, form.is_valid(), form.errors if not form.is_valid() else '')
         if form.is_valid():
             saved = form.save(commit=False)
             saved.laborant = request.user
@@ -335,6 +337,8 @@ def etap_laboratorium(request, pk):
                 return redirect('kotlownia:etap2', pk=saved.pk)
             saved.status = KotlowniaFormularz.STATUS_ZAKONCZONY
             saved.save()
+            logger.info('etap2 saved pk=%s status=%s laborant=%s technician=%s',
+                        saved.pk, saved.status, saved.laborant_id, saved.technician_id)
             all_ok, _status, deviations = sprawdz_odchylki(saved)
             _wyslij_email_kotlownia(saved, all_ok, deviations)
             messages.success(request, 'Etap 2 zapisany. Formularz zakończony.')

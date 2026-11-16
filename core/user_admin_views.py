@@ -157,6 +157,9 @@ def user_password(request, pk):
         if form.is_valid():
             u.set_password(form.cleaned_data['password'])
             u.save()
+            if u == request.user:
+                from django.contrib.auth import update_session_auth_hash
+                update_session_auth_hash(request, u)
             messages.success(request, f'Hasło użytkownika „{u.username}" zmienione.')
             return redirect('user_list')
     else:
