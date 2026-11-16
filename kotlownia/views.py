@@ -320,29 +320,33 @@ def etap_laboratorium(request, pk):
     ).update(przeczytane=True)
 
     if request.method == 'POST':
-        form = EtapLaboratoriumForm(request.POST, instance=obj)
-        action = request.POST.get('action', 'finalize')
-        logger.info('etap2 POST pk=%s action=%s user=%s valid=%s errors=%s',
-                    pk, action, request.user, form.is_valid(), form.errors if not form.is_valid() else '')
-        if form.is_valid():
-            saved = form.save(commit=False)
-            saved.laborant = request.user
-            sig = request.POST.get('podpis_laboratorium_data', '').strip()
-            if sig and not sig.endswith(','):
-                saved.podpis_laboratorium = sig
-            if action == 'draft':
-                saved.status = KotlowniaFormularz.STATUS_LABORATORIUM
+        try:
+            form = EtapLaboratoriumForm(request.POST, instance=obj)
+            action = request.POST.get('action', 'finalize')
+            if form.is_valid():
+                saved = form.save(commit=False)
+                saved.laborant = request.user
+                sig = request.POST.get('podpis_laboratorium_data', '').strip()
+                if sig and not sig.endswith(','):
+                    saved.podpis_laboratorium = sig
+                if action == 'draft':
+                    saved.status = KotlowniaFormularz.STATUS_LABORATORIUM
+                    saved.save()
+                    messages.success(request, 'Wersja robocza zapisana.')
+                    return redirect('kotlownia:etap2', pk=saved.pk)
+                saved.status = KotlowniaFormularz.STATUS_ZAKONCZONY
                 saved.save()
-                messages.success(request, 'Wersja robocza zapisana.')
-                return redirect('kotlownia:etap2', pk=saved.pk)
-            saved.status = KotlowniaFormularz.STATUS_ZAKONCZONY
-            saved.save()
-            logger.info('etap2 saved pk=%s status=%s laborant=%s technician=%s',
-                        saved.pk, saved.status, saved.laborant_id, saved.technician_id)
-            all_ok, _status, deviations = sprawdz_odchylki(saved)
-            _wyslij_email_kotlownia(saved, all_ok, deviations)
-            messages.success(request, 'Etap 2 zapisany. Formularz zakończony.')
-            return redirect('kotlownia:detail', pk=saved.pk)
+                logger.info('etap2 saved pk=%s laborant=%s technician=%s',
+                            saved.pk, saved.laborant_id, saved.technician_id)
+                all_ok, _status, deviations = sprawdz_odchylki(saved)
+                _wyslij_email_kotlownia(saved, all_ok, deviations)
+                messages.success(request, 'Etap 2 zapisany. Formularz zakończony.')
+                return redirect('kotlownia:list')
+            else:
+                logger.warning('etap2 form invalid pk=%s errors=%s', pk, form.errors)
+        except Exception:
+            logger.exception('etap2 unhandled exception pk=%s user=%s', pk, request.user)
+            raise
     else:
         form = EtapLaboratoriumForm(instance=obj)
 
@@ -357,6 +361,7 @@ def etap_laboratorium(request, pk):
 
 @login_required
 def formularz_detail(request, pk):
+    logger.info('detail view pk=%s user=%s auth=%s', pk, request.user, request.user.is_authenticated)
     obj = get_object_or_404(KotlowniaFormularz, pk=pk)
     b_rows = _build_b_rows(obj)
     _, odchylki, _ = sprawdz_odchylki(obj)
