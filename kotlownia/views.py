@@ -229,7 +229,11 @@ def _build_b_rows(obj):
 
 @login_required
 def formularz_list(request):
+    logger.info('list view user=%s auth=%s session=%s',
+                request.user, request.user.is_authenticated, request.session.session_key)
     if not _has_process_access(request.user):
+        logger.warning('list NO_PROCESS_ACCESS user=%s groups=%s',
+                       request.user, list(request.user.groups.values_list('name', flat=True)))
         messages.error(request, 'Brak dostępu do procesu Nadzór kotłowni. Wymagana rola: Kotłownia.')
         return redirect('dashboard')
 
@@ -297,8 +301,12 @@ def etap_techniczny(request, pk=None):
     })
 
 
-@login_required
 def etap_laboratorium(request, pk):
+    if not request.user.is_authenticated:
+        logger.warning('etap2 UNAUTHENTICATED pk=%s method=%s session=%s',
+                       pk, request.method, request.session.session_key)
+        from django.contrib.auth.views import redirect_to_login
+        return redirect_to_login(request.get_full_path())
     obj = get_object_or_404(KotlowniaFormularz, pk=pk)
 
     if not _has_process_access(request.user):
