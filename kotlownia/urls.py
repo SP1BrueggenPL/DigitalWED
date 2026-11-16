@@ -13,4 +13,5 @@ urlpatterns = [
     path('<int:pk>/pobierz/', views.formularz_pdf, name='pdf'),
     path('powiadomienia/', views.powiadomienia_list, name='powiadomienia'),
     path('ustawienia/', views.ustawienia, name='ustawienia'),
+    path('dashboard/', views.dashboard, name='dashboard'),
 ]

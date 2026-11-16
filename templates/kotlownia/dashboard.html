@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – Kotłownia{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Nadzór nad kotłownią</h1>
+    <div class="doc-number">CD-00001498-4 · Dashboard</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    {% if is_superuser %}
+    <a href="{% url 'kotlownia:ustawienia' %}" class="btn btn-secondary">⚙ Ustawienia</a>
+    {% endif %}
+    <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Lista</a>
+    <a href="{% url 'kotlownia:new' %}" class="btn btn-primary">+ Nowy formularz</a>
+  </div>
+</div>
+
+<!-- NAV TABS -->
+<div class="dash-tabs">
+  <a href="{% url 'kotlownia:list' %}" class="dash-tab">Lista formularzy</a>
+  <span class="dash-tab dash-tab--active">Dashboard</span>
+</div>
+
+<!-- FILTR OKRESU -->
+<form method="get" class="dash-filter">
+  <div class="dash-presets">
+    <a href="?preset=7"   class="dash-preset {% if preset == '7'   %}active{% endif %}">7 dni</a>
+    <a href="?preset=30"  class="dash-preset {% if preset == '30'  %}active{% endif %}">30 dni</a>
+    <a href="?preset=90"  class="dash-preset {% if preset == '90'  %}active{% endif %}">90 dni</a>
+    <a href="?preset=365" class="dash-preset {% if preset == '365' %}active{% endif %}">12 mies.</a>
+  </div>
+  <div class="dash-custom">
+    <label>Od</label>
+    <input type="date" name="date_from" value="{{ date_from }}" class="form-control form-control-sm">
+    <label>Do</label>
+    <input type="date" name="date_to"   value="{{ date_to }}"   class="form-control form-control-sm">
+    <button type="submit" class="btn btn-secondary btn-sm">Zastosuj</button>
+  </div>
+</form>
+
+<!-- KPI TILES -->
+<div class="kpi-row">
+  <div class="kpi-tile">
+    <div class="kpi-label">Formularze w okresie</div>
+    <div class="kpi-value">{{ total }}</div>
+  </div>
+  <div class="kpi-tile {% if ok_pct == 100 %}kpi-tile--ok{% elif ok_pct is not None %}kpi-tile--nok{% endif %}">
+    <div class="kpi-label">Wyniki w normie</div>
+    <div class="kpi-value">{% if ok_pct is not None %}{{ ok_pct }}%{% else %}—{% endif %}</div>
+    {% if total %}<div class="kpi-sub">{{ ok_count }} / {{ total }}</div>{% endif %}
+  </div>
+  <div class="kpi-tile {% if nok_count > 0 %}kpi-tile--nok{% endif %}">
+    <div class="kpi-label">Z odchyłkami</div>
+    <div class="kpi-value">{{ nok_count }}</div>
+  </div>
+  <div class="kpi-tile {% if total == 0 %}kpi-tile--warn{% endif %}">
+    <div class="kpi-label">Zakres</div>
+    <div class="kpi-value kpi-value--sm">{{ date_from|slice:"5:" }} – {{ date_to|slice:"5:" }}</div>
+    <div class="kpi-sub">{{ date_from|slice:":4" }}</div>
+  </div>
+</div>
+
+{% if total == 0 %}
+<div class="card" style="margin-top:16px">
+  <div class="card-body" style="padding:48px;text-align:center;color:var(--brand-muted)">
+    <div style="font-size:32px;margin-bottom:12px">📊</div>
+    <p>Brak zakończonych formularzy w wybranym okresie.</p>
+  </div>
+</div>
+{% else %}
+
+<!-- WYKRESY -->
+<div class="dash-charts-grid">
+  <div class="card dash-chart-card">
+    <div class="card-header"><span class="section-id">pH</span><h3>pH wody zasilającej i kotłowej</h3></div>
+    <div class="card-body"><canvas id="chart-ph"></canvas></div>
+  </div>
+  <div class="card dash-chart-card">
+    <div class="card-header"><span class="section-id">TWARDOŚĆ</span><h3>Wapniowce – woda zasilająca [°dH]</h3></div>
+    <div class="card-body"><canvas id="chart-wapnioce"></canvas></div>
+  </div>
+  <div class="card dash-chart-card">
+    <div class="card-header"><span class="section-id">TLEN</span><h3>Tlen O₂ – woda zasilająca [mg/l]</h3></div>
+    <div class="card-body"><canvas id="chart-tlen"></canvas></div>
+  </div>
+  <div class="card dash-chart-card">
+    <div class="card-header"><span class="section-id">PRZEWODN.</span><h3>Przewodność – woda zasilająca [µS/cm]</h3></div>
+    <div class="card-body"><canvas id="chart-przewodnosc-wz"></canvas></div>
+  </div>
+</div>
+
+<!-- TABELA ODCHYŁEK -->
+{% if deviations_list %}
+<div class="card" style="margin-top:16px">
+  <div class="card-header"><span class="section-id" style="background:#c0392b">NOK</span><h3>Wykryte odchyłki w okresie</h3></div>
+  <div class="card-body" style="padding:0">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Parametr</th>
+          <th>Wynik</th>
+          <th>Norma</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in deviations_list %}
+        <tr>
+          <td><strong>{{ d.data }}</strong></td>
+          <td>{{ d.label }}</td>
+          <td style="color:#c0392b;font-weight:600">{{ d.value }}</td>
+          <td style="color:var(--brand-muted)">{{ d.tolerance }}</td>
+          <td><a href="{% url 'kotlownia:detail' d.pk %}" class="btn btn-secondary btn-sm">Podgląd</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="card" style="margin-top:16px">
+  <div class="card-body" style="padding:24px;text-align:center;color:#1a7a3c;font-weight:600">
+    ✓ Brak odchyłek w wybranym okresie.
+  </div>
+</div>
+{% endif %}
+
+{% endif %}{# total > 0 #}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const LABELS = {{ chart_labels_json|safe }};
+const DATA   = {{ chart_data_json|safe }};
+const TOL    = {{ chart_tolerances_json|safe }};
+
+const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.07)';
+const textColor  = isDark ? '#c0b8bc' : '#6b5b63';
+const lineOk     = '#1a7a3c';
+const lineNok    = '#c0392b';
+const lineBlue   = '#2563eb';
+const linePurple = '#7c3aed';
+
+function tolLine(value, color) {
+  return value !== null ? {
+    type: 'line',
+    yMin: value, yMax: value,
+    borderColor: color,
+    borderWidth: 1.5,
+    borderDash: [5, 4],
+    label: { display: false },
+  } : null;
+}
+
+function makeChart(canvasId, datasets, annotations) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  new Chart(canvas, {
+    type: 'line',
+    data: { labels: LABELS, datasets },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: textColor, font: { size: 11 } } },
+        annotation: { annotations: annotations.filter(Boolean) },
+      },
+      scales: {
+        x: { ticks: { color: textColor, maxRotation: 45 }, grid: { color: gridColor } },
+        y: { ticks: { color: textColor }, grid: { color: gridColor } },
+      },
+      elements: { point: { radius: 4, hoverRadius: 6 }, line: { tension: 0.3 } },
+    },
+  });
+}
+
+function ds(label, data, color) {
+  return {
+    label,
+    data,
+    borderColor: color,
+    backgroundColor: color + '22',
+    borderWidth: 2,
+    fill: false,
+    spanGaps: true,
+  };
+}
+
+makeChart('chart-ph', [
+  ds('Woda zasilająca pH',  DATA.wz_ph,  lineBlue),
+  ds('Woda kotłowa pH',     DATA.wk_ph,  linePurple),
+], [
+  tolLine(9,    lineNok),   // wz_ph min: >9
+  tolLine(10.5, lineOk),    // wk_ph min: 10.5
+  tolLine(12,   lineNok),   // wk_ph max: 12
+]);
+
+makeChart('chart-wapnioce', [
+  ds('Wapniowce WZ [°dH]', DATA.wz_wapnioce_dh, lineBlue),
+], [
+  tolLine(0.05, lineNok),
+]);
+
+makeChart('chart-tlen', [
+  ds('Tlen O₂ [mg/l]', DATA.wz_tlen_mg, lineBlue),
+], [
+  tolLine(0.1, lineNok),
+]);
+
+makeChart('chart-przewodnosc-wz', [
+  ds('Przewodność WZ [µS/cm]', DATA.wz_przewodnosc, lineBlue),
+], [
+  tolLine(500, lineNok),
+]);
+</script>
+
+<style>
+.dash-tabs { display:flex; gap:0; border-bottom:2px solid var(--brand-border); margin-bottom:20px; }
+.dash-tab { padding:10px 20px; font-size:13px; font-weight:600; color:var(--brand-muted); text-decoration:none; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.dash-tab:hover { color:var(--brand-text); }
+.dash-tab--active { color:var(--brand-primary); border-bottom-color:var(--brand-primary); }
+
+.dash-filter { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:20px; }
+.dash-presets { display:flex; gap:6px; }
+.dash-preset { padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600; text-decoration:none; color:var(--brand-muted); border:1px solid var(--brand-border); }
+.dash-preset:hover, .dash-preset.active { background:var(--brand-primary); color:#fff; border-color:var(--brand-primary); }
+.dash-custom { display:flex; gap:8px; align-items:center; font-size:13px; color:var(--brand-muted); flex-wrap:wrap; }
+.form-control-sm { height:32px; font-size:12px; padding:4px 8px; }
+
+.kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:700px){ .kpi-row { grid-template-columns:1fr 1fr; } }
+.kpi-tile { background:var(--brand-surface,#fff); border:1.5px solid var(--brand-border); border-radius:10px; padding:18px 20px; }
+.kpi-tile--ok  { border-color:#1a7a3c; background:rgba(26,122,60,.05); }
+.kpi-tile--nok { border-color:#c0392b; background:rgba(192,57,43,.05); }
+.kpi-tile--warn{ border-color:#d97706; background:rgba(217,119,6,.05); }
+.kpi-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:var(--brand-muted); margin-bottom:6px; }
+.kpi-value { font-size:32px; font-weight:800; color:var(--brand-text); line-height:1; }
+.kpi-value--sm { font-size:20px; }
+.kpi-sub { font-size:11px; color:var(--brand-muted); margin-top:4px; }
+
+.dash-charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
+@media(max-width:800px){ .dash-charts-grid { grid-template-columns:1fr; } }
+.dash-chart-card .card-body { padding:16px; }
+</style>
+{% endblock %}

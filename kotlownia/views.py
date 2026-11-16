@@ -397,6 +397,114 @@ def powiadomienia_list(request):
 
 
 @login_required
+def dashboard(request):
+    import json
+    from datetime import date, timedelta
+
+    if not _has_process_access(request.user):
+        messages.error(request, 'Brak dostępu.')
+        return redirect('dashboard')
+
+    # --- okres ---
+    preset = request.GET.get('preset', '30')
+    date_from_str = request.GET.get('date_from', '')
+    date_to_str   = request.GET.get('date_to', '')
+    today = date.today()
+
+    if date_from_str and date_to_str:
+        try:
+            from datetime import datetime
+            date_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
+            date_to   = datetime.strptime(date_to_str,   '%Y-%m-%d').date()
+            preset = 'custom'
+        except ValueError:
+            date_from = today - timedelta(days=30)
+            date_to   = today
+    elif preset == '7':
+        date_from = today - timedelta(days=7)
+        date_to   = today
+    elif preset == '90':
+        date_from = today - timedelta(days=90)
+        date_to   = today
+    elif preset == '365':
+        date_from = today - timedelta(days=365)
+        date_to   = today
+    else:
+        preset = '30'
+        date_from = today - timedelta(days=30)
+        date_to   = today
+
+    qs = KotlowniaFormularz.objects.filter(
+        status=KotlowniaFormularz.STATUS_ZAKONCZONY,
+        data__gte=date_from,
+        data__lte=date_to,
+    ).order_by('data', 'godzina')
+
+    total = qs.count()
+    ok_count  = 0
+    nok_count = 0
+    deviations_list = []
+
+    # dane do wykresów
+    chart_labels = []
+    chart_data = {
+        'wz_ph':          [],
+        'wz_wapnioce_dh': [],
+        'wz_tlen_mg':     [],
+        'wz_przewodnosc': [],
+        'wk_ph':          [],
+        'wk_przewodnosc': [],
+    }
+    chart_tolerances = {
+        'wz_ph':          {'min': None, 'max': 9,   'label': 'Woda zas. pH',       'unit': ''},
+        'wz_wapnioce_dh': {'min': None, 'max': 0.05,'label': 'Woda zas. Wapniowce','unit': '°dH'},
+        'wz_tlen_mg':     {'min': None, 'max': 0.1, 'label': 'Woda zas. Tlen O₂',  'unit': 'mg/l'},
+        'wz_przewodnosc': {'min': None, 'max': 500, 'label': 'Woda zas. Przewodn.','unit': 'µS/cm'},
+        'wk_ph':          {'min': 10.5, 'max': 12,  'label': 'Woda kot. pH',        'unit': ''},
+        'wk_przewodnosc': {'min': 30,   'max': 8000,'label': 'Woda kot. Przewodn.', 'unit': 'µS/cm'},
+    }
+
+    for f in qs:
+        all_ok, _, devs = sprawdz_odchylki(f)
+        if all_ok:
+            ok_count += 1
+        else:
+            nok_count += 1
+            for d in devs:
+                deviations_list.append({
+                    'data': f.data.strftime('%d.%m.%Y'),
+                    'label': d['label'],
+                    'value': d['value'],
+                    'tolerance': d['tolerance'],
+                    'pk': f.pk,
+                })
+
+        label = f.data.strftime('%d.%m')
+        chart_labels.append(label)
+        for field in chart_data:
+            val = getattr(f, field)
+            chart_data[field].append(float(val) if val is not None else None)
+
+    ok_pct = round(ok_count / total * 100) if total else None
+
+    context = {
+        'preset': preset,
+        'date_from': date_from.strftime('%Y-%m-%d'),
+        'date_to':   date_to.strftime('%Y-%m-%d'),
+        'total': total,
+        'ok_count': ok_count,
+        'nok_count': nok_count,
+        'ok_pct': ok_pct,
+        'deviations_list': deviations_list,
+        'chart_labels_json':     json.dumps(chart_labels),
+        'chart_data_json':       json.dumps(chart_data),
+        'chart_tolerances_json': json.dumps(chart_tolerances),
+        'is_superuser': request.user.is_superuser,
+    }
+    return render(request, 'kotlownia/dashboard.html', context)
+
+
+@login_required
 def ustawienia(request):
     if not request.user.is_superuser:
         messages.error(request, 'Brak uprawnień do ustawień.')

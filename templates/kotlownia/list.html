@@ -15,6 +15,11 @@
   </div>
 </div>
 
+<div class="dash-tabs">
+  <span class="dash-tab dash-tab--active">Lista formularzy</span>
+  <a href="{% url 'kotlownia:dashboard' %}" class="dash-tab">Dashboard</a>
+</div>
+
 <div class="card">
   <div class="card-header"><h3>Historia wpisów</h3></div>
   <div class="card-body" style="padding:0">
@@ -77,4 +82,10 @@
     {% endif %}
   </div>
 </div>
+<style>
+.dash-tabs { display:flex; gap:0; border-bottom:2px solid var(--brand-border); margin-bottom:20px; }
+.dash-tab { padding:10px 20px; font-size:13px; font-weight:600; color:var(--brand-muted); text-decoration:none; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.dash-tab:hover { color:var(--brand-text); }
+.dash-tab--active { color:var(--brand-primary); border-bottom-color:var(--brand-primary); }
+</style>
 {% endblock %}
