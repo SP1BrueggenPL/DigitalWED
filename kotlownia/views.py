@@ -192,11 +192,11 @@ def _has_process_access(user):
 
 
 def _is_lab(user):
-    return user.is_superuser or user.groups.filter(name='Laboratorium').exists()
+    return user.is_superuser or user.groups.filter(name='Laboratory').exists()
 
 
 def _is_tech(user):
-    return user.is_superuser or user.groups.filter(name='Techniczny').exists()
+    return user.is_superuser or user.groups.filter(name='Engineering').exists()
 
 
 def _can_edit_etap1(user):

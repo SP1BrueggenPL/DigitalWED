@@ -23,16 +23,9 @@
       {% for field in form %}
       <div class="uf-field">
 
-        {% if field.name == 'klaster' %}
-          <label class="uf-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-          {{ field }}
-          <p style="font-size:11px;color:var(--brand-muted);margin-top:5px">
-            Po wybraniu klastra role zostaną ustawione automatycznie. Możesz też pominąć klaster i zaznaczyć role ręcznie poniżej.
-          </p>
-
-        {% elif field.name == 'groups' %}
+        {% if field.name == 'groups' %}
           <div class="uf-label">{{ field.label }}</div>
-          <div class="uf-checkgroup" id="groups-wrap">{{ field }}</div>
+          <div class="uf-checkgroup">{{ field }}</div>
 
         {% elif field.name == 'is_active' %}
           <label class="uf-bool">{{ field }}<span>{{ field.label }}</span></label>
@@ -71,39 +64,5 @@
 .uf-error { color:var(--brand-danger); font-size:12px; margin-top:4px; }
 </style>
 
-{% if klastry_data %}
-<script>
-const KLASTRY = {{ klastry_data|safe }};
-
-const klasterSel = document.getElementById('id_klaster');
-const groupsWrap = document.getElementById('groups-wrap');
-
-function applyKlaster(klasterId) {
-  if (!groupsWrap) return;
-  const checkboxes = groupsWrap.querySelectorAll('input[type=checkbox]');
-  const labels     = groupsWrap.querySelectorAll('li label');
-
-  if (!klasterId || !KLASTRY[klasterId]) {
-    checkboxes.forEach(cb => {
-      cb.disabled = false;
-      cb.closest('li').querySelector('label').classList.remove('auto-checked');
-    });
-    return;
-  }
-
-  const groupIds = KLASTRY[klasterId].map(String);
-
-  checkboxes.forEach(cb => {
-    const inCluster = groupIds.includes(cb.value);
-    cb.checked  = inCluster;
-    cb.disabled = false;  // nigdy nie blokuj — disabled nie jest wysyłany w POST
-    cb.closest('li').querySelector('label').classList.toggle('auto-checked', inCluster);
-  });
-}
-
-klasterSel.addEventListener('change', () => applyKlaster(klasterSel.value));
-applyKlaster(klasterSel.value);
-</script>
-{% endif %}
 
 {% endblock %}

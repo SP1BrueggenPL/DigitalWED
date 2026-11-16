@@ -6,7 +6,7 @@ from .models import Powiadomienie
 def powiadom_laboratorium(formularz):
     """Tworzy powiadomienie dla wszystkich użytkowników w grupie 'Laboratorium'."""
     try:
-        grupa = Group.objects.get(name='Laboratorium')
+        grupa = Group.objects.get(name='Laboratory')
         odbiorcy = User.objects.filter(groups=grupa, is_active=True)
     except Group.DoesNotExist:
         # Brak grupy – powiadom wszystkich aktywnych pracowników oprócz technika

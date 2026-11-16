@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django import forms
-from .models import UserProfile, Klaster
+from .models import UserProfile
 
 
 def _staff_only(user):
@@ -17,22 +17,18 @@ def _fc(widget=None, **kwargs):
 
 # ── FORMULARZE ────────────────────────────────────────────────
 
+FIXED_GROUPS = ('Kotłownia', 'Engineering', 'Laboratory')
+
+
 class UserCreateForm(forms.Form):
     first_name  = forms.CharField(max_length=150, label='Imię', required=False, widget=_fc())
     last_name   = forms.CharField(max_length=150, label='Nazwisko', required=False, widget=_fc())
     email       = forms.EmailField(label='E-mail', required=False, widget=_fc(forms.EmailInput))
     chip_number = forms.CharField(max_length=20, label='Numer chip *', widget=_fc(placeholder='np. 12345'))
-    klaster     = forms.ModelChoiceField(
-        queryset=Klaster.objects.all(),
-        required=False,
-        label='Klaster (opcjonalnie)',
-        empty_label='— wybierz klaster lub ustaw role ręcznie —',
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_klaster'}),
-    )
     groups = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
+        queryset=Group.objects.filter(name__in=FIXED_GROUPS),
         required=False,
-        label='Role (ręcznie)',
+        label='Grupy',
         widget=forms.CheckboxSelectMultiple,
     )
 
@@ -48,17 +44,10 @@ class UserEditForm(forms.Form):
     first_name = forms.CharField(max_length=150, label='Imię', required=False, widget=_fc())
     last_name  = forms.CharField(max_length=150, label='Nazwisko', required=False, widget=_fc())
     email      = forms.EmailField(label='E-mail', required=False, widget=_fc(forms.EmailInput))
-    klaster    = forms.ModelChoiceField(
-        queryset=Klaster.objects.all(),
-        required=False,
-        label='Klaster',
-        empty_label='— brak / ustaw role ręcznie —',
-        widget=forms.Select(attrs={'class': 'form-control', 'id': 'id_klaster'}),
-    )
     groups = forms.ModelMultipleChoiceField(
-        queryset=Group.objects.all(),
+        queryset=Group.objects.filter(name__in=FIXED_GROUPS),
         required=False,
-        label='Role (ręcznie)',
+        label='Grupy',
         widget=forms.CheckboxSelectMultiple,
     )
     is_active = forms.BooleanField(required=False, label='Konto aktywne')
@@ -117,22 +106,15 @@ def user_create(request):
             )
             u.set_unusable_password()
             u.save()
-            klaster = form.cleaned_data.get('klaster')
-            if klaster:
-                u.groups.set(klaster.grupy.all())
-            else:
-                u.groups.set(form.cleaned_data['groups'])
+            u.groups.set(form.cleaned_data['groups'])
             UserProfile.objects.create(user=u, chip_number=chip)
             messages.success(request, f'Użytkownik chip_{chip} utworzony. Logowanie przez numer chip: {chip}.')
             return redirect('user_list')
     else:
         form = UserCreateForm()
-    import json
-    klastry_data = json.dumps({str(k.pk): list(k.grupy.values_list('pk', flat=True)) for k in Klaster.objects.prefetch_related('grupy')})
     return render(request, 'core/user_form.html', {
         'form': form,
         'action': 'Nowy użytkownik',
-        'klastry_data': klastry_data,
     })
 
 
@@ -147,11 +129,7 @@ def user_edit(request, pk):
             u.last_name  = form.cleaned_data['last_name']
             u.email      = form.cleaned_data['email']
             u.is_active  = form.cleaned_data['is_active']
-            klaster = form.cleaned_data.get('klaster')
-            if klaster:
-                u.groups.set(klaster.grupy.all())
-            else:
-                u.groups.set(form.cleaned_data['groups'])
+            u.groups.set(form.cleaned_data['groups'])
             u.save()
             messages.success(request, f'Użytkownik „{u.username}" zaktualizowany.')
             return redirect('user_list')
@@ -160,16 +138,13 @@ def user_edit(request, pk):
             'first_name': u.first_name,
             'last_name':  u.last_name,
             'email':      u.email,
-            'groups':     u.groups.all(),
+            'groups':     u.groups.filter(name__in=FIXED_GROUPS),
             'is_active':  u.is_active,
         })
-    import json
-    klastry_data = json.dumps({str(k.pk): list(k.grupy.values_list('pk', flat=True)) for k in Klaster.objects.prefetch_related('grupy')})
     return render(request, 'core/user_form.html', {
         'form': form,
         'action': f'Edytuj: {u.username}',
         'edit_user': u,
-        'klastry_data': klastry_data,
     })
 
 
