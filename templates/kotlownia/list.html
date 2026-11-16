@@ -42,8 +42,8 @@
         <tr>
           <td><strong>{{ f.data|date:"d.m.Y" }}</strong></td>
           <td>{{ f.godzina|time:"H:i" }}</td>
-          <td>{{ f.technician.get_full_name|default:f.technician.username|default:"—" }}</td>
-          <td>{{ f.laborant.get_full_name|default:f.laborant.username|default:"—" }}</td>
+          <td>{% if f.technician %}{{ f.technician.get_full_name|default:f.technician.username }}{% else %}—{% endif %}</td>
+          <td>{% if f.laborant %}{{ f.laborant.get_full_name|default:f.laborant.username }}{% else %}—{% endif %}</td>
           <td>
             {% if f.status == 'techniczny' %}
               <span class="status-chip status-chip--warn">Etap 1 – w toku</span>
