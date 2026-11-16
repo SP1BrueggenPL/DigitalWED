@@ -5,10 +5,9 @@
 <div class="page-header">
   <div class="page-header-left">
     <h1>Użytkownicy i role</h1>
-    <div class="doc-number">Zarządzanie kontami, klastrami i uprawnieniami</div>
+    <div class="doc-number">Zarządzanie kontami i uprawnieniami</div>
   </div>
   <div style="display:flex;gap:10px">
-    <a href="{% url 'klaster_create' %}" class="btn btn-secondary">+ Nowy klaster</a>
     <a href="{% url 'user_create' %}" class="btn btn-primary">+ Nowy użytkownik</a>
   </div>
 </div>
@@ -22,7 +21,7 @@
         <tr>
           <th>Użytkownik</th>
           <th>Imię i nazwisko</th>
-          <th>Role / Klaster</th>
+          <th>Grupy</th>
           <th>Status</th>
           <th></th>
         </tr>
@@ -57,52 +56,4 @@
   </div>
 </div>
 
-<!-- KLASTRY -->
-<div class="card">
-  <div class="card-header">
-    <h3>Klastry</h3>
-    <span style="font-size:11px;color:rgba(255,255,255,0.7);margin-left:8px;font-weight:400">Zestawy ról gotowe do przypisania użytkownikom</span>
-  </div>
-  <div class="card-body" style="padding:0">
-    {% if klastry %}
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nazwa klastra</th>
-          <th>Opis</th>
-          <th>Role w klastrze</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for k in klastry %}
-        <tr>
-          <td><strong>{{ k.nazwa }}</strong></td>
-          <td style="color:var(--brand-muted);font-size:13px">{{ k.opis|default:"—" }}</td>
-          <td>
-            {% for g in k.grupy.all %}
-              <span class="status-chip status-chip--info" style="margin-right:3px">{{ g.name }}</span>
-            {% empty %}
-              <span style="color:var(--brand-muted);font-size:12px">Brak ról</span>
-            {% endfor %}
-          </td>
-          <td style="white-space:nowrap">
-            <a href="{% url 'klaster_edit' k.pk %}" class="btn btn-secondary btn-sm">Edytuj</a>
-            <form method="post" action="{% url 'klaster_delete' k.pk %}" style="display:inline" onsubmit="return confirm('Usunąć klaster „{{ k.nazwa }}"?')">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-secondary btn-sm" style="color:var(--brand-danger)">Usuń</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div style="padding:36px;text-align:center;color:var(--brand-muted)">
-      <div style="font-size:28px;margin-bottom:8px">🗂</div>
-      <p>Brak klastrów. <a href="{% url 'klaster_create' %}" style="color:var(--brand-primary);font-weight:600">Utwórz pierwszy klaster</a>.</p>
-    </div>
-    {% endif %}
-  </div>
-</div>
 {% endblock %}
