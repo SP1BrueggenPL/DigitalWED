@@ -202,13 +202,13 @@ def _is_tech(user):
 def _can_edit_etap1(user):
     if user.is_superuser:
         return True
-    in_tech = user.groups.filter(name='Techniczny').exists()
-    in_lab  = user.groups.filter(name='Laboratorium').exists()
-    return in_tech or (not in_lab)
+    in_eng = user.groups.filter(name='Engineering').exists()
+    in_lab = user.groups.filter(name='Laboratory').exists()
+    return in_eng or (not in_lab)
 
 
 def _can_edit_etap2(user):
-    return user.is_superuser or user.groups.filter(name='Laboratorium').exists()
+    return user.is_superuser or user.groups.filter(name='Laboratory').exists()
 
 
 def _build_b_rows(obj):
