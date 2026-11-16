@@ -23,7 +23,7 @@
   </div>
 </div>
 
-<form method="post" novalidate>
+<form method="post" novalidate id="etap2-form">
   {% csrf_token %}
 
   <!-- NAGŁÓWEK LABORATORIUM -->
@@ -160,7 +160,7 @@ initSignaturePad('sig-canvas-lab', 'sig-input-lab', 'sig-clear-lab');
 })();
 
 // Block Enter from submitting
-document.querySelector('form').addEventListener('keydown', function(e) {
+document.getElementById('etap2-form').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
     e.preventDefault();
   }
@@ -168,13 +168,13 @@ document.querySelector('form').addEventListener('keydown', function(e) {
 
 document.getElementById('btn-draft').addEventListener('click', function() {
   document.getElementById('form-action').value = 'draft';
-  document.querySelector('form').submit();
+  document.getElementById('etap2-form').submit();
 });
 
 document.getElementById('btn-finalize').addEventListener('click', function() {
   if (!confirm('Zatwierdź i zamknij formularz? Tej operacji nie można cofnąć.')) return;
   document.getElementById('form-action').value = 'finalize';
-  document.querySelector('form').submit();
+  document.getElementById('etap2-form').submit();
 });
 </script>
 <style>
