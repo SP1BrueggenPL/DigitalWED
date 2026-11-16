@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django import forms
-from .models import UserProfile
+from .models import UserProfile, Klaster
 
 
 def _staff_only(user):
