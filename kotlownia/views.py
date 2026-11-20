@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.conf import settings
 from django.urls import reverse
 from django.http import HttpResponse
 from .models import KotlowniaFormularz, KotlowniaUstawienia
@@ -114,19 +115,54 @@ def sprawdz_odchylki(obj):
     return all_ok, status, deviations
 
 
-def _wyslij_email_kotlownia(obj, all_ok, deviations):
-    import os, base64
-    from django.utils.timezone import localtime, now as dj_now
+def _wyslij_email(subject, body, attachments=None):
+    import os
     connection_string = os.environ.get('AZURE_CONNECTION_STRING', '')
     sender_address    = os.environ.get('AZURE_SENDER_ADDRESS', '')
     if not connection_string or not sender_address:
         logger.warning('Kotlownia email: brak AZURE_CONNECTION_STRING lub AZURE_SENDER_ADDRESS')
         return
-
-    ustawienia = KotlowniaUstawienia.get()
-    recipients = list(ustawienia.odbiorcy)
+    recipients = list(KotlowniaUstawienia.get().odbiorcy)
     if not recipients:
+        logger.warning('Kotlownia email: brak odbiorców w ustawieniach')
         return
+    try:
+        from azure.communication.email import EmailClient
+        client = EmailClient.from_connection_string(connection_string)
+        message = {
+            'senderAddress': sender_address,
+            'recipients': {'to': [{'address': addr} for addr in recipients]},
+            'content': {'subject': subject, 'plainText': body},
+        }
+        if attachments:
+            message['attachments'] = attachments
+        client.begin_send(message).result()
+        logger.info('Kotlownia email sent: %s (%d odbiorców)', subject, len(recipients))
+    except Exception as exc:
+        logger.error('Kotlownia email send failed: %s', exc)
+
+
+def _wyslij_email_zapowiedz_probek(obj):
+    date_str  = obj.data.strftime('%d.%m.%Y')
+    time_str  = obj.godzina.strftime('%H:%M')
+    tech_name = (obj.technician.get_full_name() or obj.technician.username) if obj.technician else '-'
+    body = '\n'.join([
+        'Nadzór nad kotłownią – Formularz CD-00001498-4',
+        '',
+        f'Dział Techniczny zatwierdził Etap 1 wpisu z dnia {date_str}, godz. {time_str} (technik: {tech_name}).',
+        'Wkrótce do Laboratorium zostaną dostarczone próbki wody do tego wpisu.',
+        '',
+        'Po wykonaniu analiz prosimy o uzupełnienie Etapu 2 w aplikacji:',
+        settings.APP_BASE_URL + reverse('kotlownia:etap2', args=[obj.pk]),
+        '',
+        f'Aplikacja: {settings.APP_BASE_URL}',
+    ])
+    _wyslij_email(f'Kotłownia {date_str} {time_str} – próbki w drodze do Laboratorium', body)
+
+
+def _wyslij_email_kotlownia(obj, all_ok, deviations):
+    import base64
+    from django.utils.timezone import localtime, now as dj_now
 
     date_str  = obj.data.strftime('%d.%m.%Y')  if obj.data       else '-'
     time_str  = obj.lab_godzina.strftime('%H:%M') if obj.lab_godzina else '-'
@@ -173,20 +209,7 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
     except Exception as exc:
         logger.error('Kotlownia email: nie udało się wygenerować PDF: %s', exc)
 
-    try:
-        from azure.communication.email import EmailClient
-        client = EmailClient.from_connection_string(connection_string)
-        message = {
-            'senderAddress': sender_address,
-            'recipients': {'to': [{'address': addr} for addr in recipients]},
-            'content': {'subject': subject, 'plainText': body},
-        }
-        if attachments:
-            message['attachments'] = attachments
-        poller = client.begin_send(message)
-        poller.result()
-    except Exception as exc:
-        logger.error('Kotlownia email send failed: %s', exc)
+    _wyslij_email(subject, body, attachments)
 
 
 # ── Access helpers ─────────────────────────────────────────────────────────────
@@ -289,10 +312,21 @@ def etap_techniczny(request, pk=None):
             sig = request.POST.get('podpis_techniczny_data', '').strip()
             if sig and not sig.endswith(','):
                 saved.podpis_techniczny = sig
+            already_accepted = bool(obj) and obj.status == KotlowniaFormularz.STATUS_LABORATORIUM
+            if request.POST.get('action') == 'draft' and not already_accepted:
+                saved.status = KotlowniaFormularz.STATUS_TECHNICZNY
+                saved.save()
+                messages.success(request, 'Wersja robocza Etapu 1 zapisana.')
+                return redirect('kotlownia:etap1', pk=saved.pk)
             saved.status = KotlowniaFormularz.STATUS_LABORATORIUM
             saved.save()
-            powiadom_laboratorium(saved)
-            messages.success(request, 'Etap 1 zapisany. Powiadomienie wysłane do Laboratorium.')
+            if already_accepted:
+                messages.success(request, 'Zmiany w Etapie 1 zapisane.')
+            else:
+                logger.info('etap1 accepted pk=%s technician=%s', saved.pk, saved.technician_id)
+                powiadom_laboratorium(saved)
+                _wyslij_email_zapowiedz_probek(saved)
+                messages.success(request, 'Etap 1 zatwierdzony. Powiadomienie wysłane do Laboratorium.')
             return redirect('kotlownia:detail', pk=saved.pk)
     else:
         form = EtapTechnicznyForm(instance=obj)
@@ -319,6 +353,10 @@ def etap_laboratorium(request, pk):
 
     if obj.status == KotlowniaFormularz.STATUS_ZAKONCZONY:
         messages.error(request, 'Formularz jest zakończony i nie może być edytowany.')
+        return redirect('kotlownia:detail', pk=obj.pk)
+
+    if obj.status == KotlowniaFormularz.STATUS_TECHNICZNY:
+        messages.error(request, 'Etap 1 nie został jeszcze zatwierdzony przez Dział Techniczny.')
         return redirect('kotlownia:detail', pk=obj.pk)
 
     if not _can_edit_etap2(request.user):

@@ -134,7 +134,13 @@
 
   <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px">
     <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">Anuluj</a>
-    <button type="submit" class="btn btn-primary">Zapisz Etap 1 i przekaż do Laboratorium →</button>
+    {% if obj and obj.status == 'laboratorium' %}
+    <button type="submit" name="action" value="accept" class="btn btn-primary">Zapisz zmiany</button>
+    {% else %}
+    <button type="submit" name="action" value="draft" class="btn btn-secondary">💾 Zapisz wersję roboczą</button>
+    <button type="submit" name="action" value="accept" class="btn btn-primary"
+            onclick="return confirm('Zatwierdzić Etap 1 i przekazać do Laboratorium? Zostanie wysłany e-mail z zapowiedzią próbek.');">✓ Zatwierdź Etap 1 i przekaż do Laboratorium →</button>
+    {% endif %}
   </div>
 </form>
 

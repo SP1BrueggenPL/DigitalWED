@@ -64,7 +64,9 @@
           <td style="color:var(--brand-muted);font-size:12px">{{ f.created_at|date:"d.m.Y H:i" }}</td>
           <td style="white-space:nowrap">
             <a href="{% url 'kotlownia:detail' f.pk %}" class="btn btn-secondary btn-sm">Podgląd</a>
-            {% if f.status == 'laboratorium' %}
+            {% if f.status == 'techniczny' %}
+              <a href="{% url 'kotlownia:etap1' f.pk %}" class="btn btn-primary btn-sm">Etap 1</a>
+            {% elif f.status == 'laboratorium' %}
               <a href="{% url 'kotlownia:etap2' f.pk %}" class="btn btn-primary btn-sm">Etap 2</a>
             {% elif f.status == 'zakonczony' %}
               <a href="{% url 'kotlownia:pdf' f.pk %}" class="btn btn-secondary btn-sm">⬇ Pobierz</a>

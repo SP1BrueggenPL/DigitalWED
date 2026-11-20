@@ -109,6 +109,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Env vars: AZURE_CONNECTION_STRING, AZURE_SENDER_ADDRESS
 # Recipients configured in Django admin -> Kotlownia -> Ustawienia
 
+APP_BASE_URL = os.environ.get(
+    'APP_BASE_URL',
+    'https://digitalwedwilga-fee8ewa2d3e9fxfx.polandcentral-01.azurewebsites.net'
+).rstrip('/')
+
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'
