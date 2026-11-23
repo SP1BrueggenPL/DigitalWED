@@ -19,8 +19,9 @@
     <p style="font-size:12px;color:var(--brand-muted);text-align:center;margin-bottom:16px">
       Pierwsze logowanie – ustaw swój kod autoryzacyjny (min. 4 znaki).
     </p>
-    <form method="post">
+    <form method="post" onsubmit="var b=this.querySelector('button[type=submit]'); if (b.disabled) return false; b.disabled=true;">
       {% csrf_token %}
+      <input type="hidden" name="chip_token" value="{{ chip_token }}">
       <div class="form-group" style="margin-bottom:14px">
         <label>Nowy kod autoryzacyjny</label>
         <input type="password" name="auth_code" class="form-control"
@@ -39,8 +40,9 @@
       </button>
     </form>
     {% else %}
-    <form method="post">
+    <form method="post" onsubmit="var b=this.querySelector('button[type=submit]'); if (b.disabled) return false; b.disabled=true;">
       {% csrf_token %}
+      <input type="hidden" name="chip_token" value="{{ chip_token }}">
       <div class="form-group" style="margin-bottom:20px">
         <label>Kod autoryzacyjny</label>
         <input type="password" name="auth_code" class="form-control"

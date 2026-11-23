@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
+from django.core import signing
 from django import forms
 from .models import UserProfile
 from .backends import ChipAuthBackend
@@ -25,6 +26,8 @@ class ZmienHasloForm(forms.Form):
             raise forms.ValidationError('Hasła się nie zgadzają.')
         return cd
 
+
+CHIP_TOKEN_SALT = 'login-chip'
 
 ALL_PROCESSES = [
     {
@@ -50,9 +53,8 @@ def chip_login_step1(request):
             error = 'Podaj numer chip.'
         else:
             try:
-                profile = UserProfile.objects.get(chip_number=chip)
+                UserProfile.objects.get(chip_number=chip)
                 request.session['login_chip'] = chip
-                request.session['login_first_time'] = not profile.auth_code_set
                 return redirect('login_kod')
             except UserProfile.DoesNotExist:
                 error = 'Nieznany numer chip.'
@@ -64,45 +66,45 @@ def chip_login_step2(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     chip = request.session.get('login_chip')
-    if not chip:
+    if not chip and request.method == 'POST':
+        # Sesja mogła zostać utracona między krokami (np. podwójne wysłanie formularza).
+        try:
+            chip = signing.loads(request.POST.get('chip_token', ''), salt=CHIP_TOKEN_SALT, max_age=900)
+        except signing.BadSignature:
+            chip = None
+    profile = UserProfile.objects.select_related('user').filter(chip_number=chip).first() if chip else None
+    if not profile:
         return redirect('login')
-    first_time = request.session.get('login_first_time', False)
+    first_time = not profile.auth_code_set
     error = None
 
     if request.method == 'POST':
         kod = request.POST.get('auth_code', '').strip()
         if first_time:
-            # Ustawianie kodu po raz pierwszy
             kod2 = request.POST.get('auth_code2', '').strip()
             if len(kod) < 4:
                 error = 'Kod musi mieć co najmniej 4 znaki.'
             elif kod != kod2:
                 error = 'Kody się nie zgadzają.'
+            elif not profile.user.is_active:
+                error = 'Konto jest nieaktywne. Skontaktuj się z administratorem.'
             else:
-                profile = UserProfile.objects.get(chip_number=chip)
                 profile.auth_code = make_password(kod)
                 profile.auth_code_set = True
                 profile.save()
-                user = ChipAuthBackend().authenticate(request, chip_number=chip, auth_code=kod)
-                if user:
-                    login(request, user, backend='core.backends.ChipAuthBackend')
-                    request.session.pop('login_chip', None)
-                    request.session.pop('login_first_time', None)
-                    return redirect('dashboard')
-        else:
-            # Weryfikacja istniejącego kodu
+                first_time = False
+        if not error:
             user = ChipAuthBackend().authenticate(request, chip_number=chip, auth_code=kod)
             if user:
                 login(request, user, backend='core.backends.ChipAuthBackend')
                 request.session.pop('login_chip', None)
-                request.session.pop('login_first_time', None)
-                return redirect(request.GET.get('next', 'dashboard'))
-            else:
-                error = 'Nieprawidłowy kod autoryzacyjny.'
+                return redirect('dashboard')
+            error = 'Nieprawidłowy kod autoryzacyjny.'
 
     return render(request, 'core/login_kod.html', {
         'first_time': first_time,
         'error': error,
+        'chip_token': signing.dumps(chip, salt=CHIP_TOKEN_SALT),
     })
 
 
