@@ -11,9 +11,8 @@ from .models import KotlowniaFormularz, KotlowniaUstawienia
 from .forms import EtapTechnicznyForm, EtapLaboratoriumForm
 from core.notifications import powiadom_laboratorium
 from core.models import Powiadomienie
-from core.permissions import is_admin
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from core.permissions import is_admin, GROUP_MECHANICY
+from core.mail import send_email, clean_recipients
 from django.views.decorators.http import require_POST
 
 logger = logging.getLogger(__name__)
@@ -116,30 +115,7 @@ def sprawdz_odchylki(obj):
 
 
 def _wyslij_email(subject, body, attachments=None):
-    import os
-    connection_string = os.environ.get('AZURE_CONNECTION_STRING', '')
-    sender_address    = os.environ.get('AZURE_SENDER_ADDRESS', '')
-    if not connection_string or not sender_address:
-        logger.warning('Kotlownia email: brak AZURE_CONNECTION_STRING lub AZURE_SENDER_ADDRESS')
-        return
-    recipients = list(KotlowniaUstawienia.get().odbiorcy)
-    if not recipients:
-        logger.warning('Kotlownia email: brak odbiorców w ustawieniach')
-        return
-    try:
-        from azure.communication.email import EmailClient
-        client = EmailClient.from_connection_string(connection_string)
-        message = {
-            'senderAddress': sender_address,
-            'recipients': {'to': [{'address': addr} for addr in recipients]},
-            'content': {'subject': subject, 'plainText': body},
-        }
-        if attachments:
-            message['attachments'] = attachments
-        client.begin_send(message).result()
-        logger.info('Kotlownia email sent: %s (%d odbiorców)', subject, len(recipients))
-    except Exception as exc:
-        logger.error('Kotlownia email send failed: %s', exc)
+    send_email(KotlowniaUstawienia.get().odbiorcy, subject, body, attachments)
 
 
 def _wyslij_email_zapowiedz_probek(obj):
@@ -215,7 +191,7 @@ def _wyslij_email_kotlownia(obj, all_ok, deviations):
 # ── Access helpers ─────────────────────────────────────────────────────────────
 
 def _has_process_access(user):
-    return user.is_superuser or user.groups.filter(name='Kotłownia').exists()
+    return user.is_superuser or user.groups.filter(name=GROUP_MECHANICY).exists()
 
 
 def _is_lab(user):
@@ -261,7 +237,7 @@ def formularz_list(request):
     if not _has_process_access(request.user):
         logger.warning('list NO_PROCESS_ACCESS user=%s groups=%s',
                        request.user, list(request.user.groups.values_list('name', flat=True)))
-        messages.error(request, 'Brak dostępu do procesu Nadzór kotłowni. Wymagana rola: Kotłownia.')
+        messages.error(request, 'Brak dostępu do procesu Nadzór kotłowni. Wymagana rola: Kotłownia - Mechanicy.')
         return redirect('dashboard')
 
     if _is_lab(request.user) and not _is_tech(request.user) and not request.user.is_superuser:
@@ -571,15 +547,7 @@ def ustawienia(request):
     obj = KotlowniaUstawienia.get()
     odbiorcy = obj.odbiorcy
     if request.method == 'POST':
-        odbiorcy = list(dict.fromkeys(
-            e.strip() for e in request.POST.getlist('odbiorcy') if e.strip()
-        ))
-        invalid = []
-        for e in odbiorcy:
-            try:
-                validate_email(e)
-            except ValidationError:
-                invalid.append(e)
+        odbiorcy, invalid = clean_recipients(request.POST.getlist('odbiorcy'))
         if invalid:
             messages.error(request, 'Nieprawidłowy adres e-mail: ' + ', '.join(invalid))
         else:

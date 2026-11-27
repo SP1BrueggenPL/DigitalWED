@@ -502,6 +502,7 @@ textarea.form-control { resize: vertical; min-height: 60px; }
 }
 
 .login-card {
+  max-width: calc(100vw - 24px);
   background: var(--brand-surface);
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.35);

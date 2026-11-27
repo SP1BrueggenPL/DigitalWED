@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}WED Digital{% endblock %} – H. &amp; J. Brüggen KG</title>
   <link rel="stylesheet" href="{% static 'css/brueggen.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
 
@@ -35,16 +36,15 @@
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Procesy</div>
-    {% if user.is_superuser %}
+    {% if nav_mechanicy %}
     <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
       <span class="sidebar-icon">🔥</span> Nadzór kotłowni
     </a>
-    {% else %}
-      {% for g in user.groups.all %}{% if g.name == 'Kotłownia' %}
-    <a href="{% url 'kotlownia:list' %}" class="sidebar-link {% if 'kotlownia' in request.resolver_match.namespace %}active{% endif %}">
-      <span class="sidebar-icon">🔥</span> Nadzór kotłowni
+    {% endif %}
+    {% if nav_elektrycy %}
+    <a href="{% url 'elektryk:form' %}" class="sidebar-link {% if 'elektryk' in request.resolver_match.namespace %}active{% endif %}">
+      <span class="sidebar-icon">⚡</span> Kontrola elektryka
     </a>
-      {% endif %}{% endfor %}
     {% endif %}
   </div>
   <div class="sidebar-section">

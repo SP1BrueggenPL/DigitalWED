@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django import forms
 from .models import UserProfile, Klaster
-from .permissions import is_admin as _staff_only
+from .permissions import is_admin as _staff_only, GROUP_MECHANICY, GROUP_ELEKTRYCY
 
 
 def _fc(widget=None, **kwargs):
@@ -14,7 +14,7 @@ def _fc(widget=None, **kwargs):
 
 # ── FORMULARZE ────────────────────────────────────────────────
 
-FIXED_GROUPS = ('Administrator', 'Kotłownia', 'Engineering', 'Laboratory')
+FIXED_GROUPS = ('Administrator', GROUP_MECHANICY, GROUP_ELEKTRYCY, 'Engineering', 'Laboratory')
 
 
 class UserCreateForm(forms.Form):

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Rejestr kontroli kotłowni{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/elektryk.css' %}">{% endblock %}
+
+{% block content %}
+{% include 'elektryk/_tabs.html' with aktywna='rejestr' %}
+
+<section id="view-rejestr">
+  {% csrf_token %}
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1>Rejestr kontroli kotłowni</h1>
+      <div class="doc-number">{{ doc_number }}, wszystkie wysłane formularze, najnowsze na górze</div>
+    </div>
+    <div class="app-tools">
+      <select class="form-control" id="month" aria-label="Miesiąc"></select>
+      <button class="btn btn-secondary" id="csv" type="button">Pobierz CSV (Excel)</button>
+      {% if is_admin %}<a href="{% url 'elektryk:ustawienia' %}" class="btn btn-secondary">⚙ Ustawienia</a>{% endif %}
+    </div>
+  </div>
+
+  <div class="process-grid" id="stock"></div>
+  <p class="app-status" id="reg-status"></p>
+
+  <div class="card">
+    <div class="card-header"><h3>Wpisy</h3><span class="section-id">Czerwone pola: poniżej progu lub „Nie”</span><span class="badge-count" id="count" hidden></span></div>
+    <div class="app-tablewrap">
+      <table class="data-table app-reg">
+        <thead>
+          <tr>
+            <th class="sticky" rowspan="2">Data</th>
+            <th rowspan="2">Godzina</th>
+            <th colspan="3">Sól zmiękczająca</th>
+            <th colspan="2">Eurocept P138S</th>
+            <th colspan="2">Eurocept D280</th>
+            <th rowspan="2">Zrzut wody do kanału (przyczyna)</th>
+            <th colspan="6">Nastawy zaworów i pomp – kolektor C.O. (wartość nastawy)</th>
+            <th rowspan="2">Ciśnienie wody miejskiej [bar]</th>
+            <th rowspan="2">Licznik wody schładzacza</th>
+            <th rowspan="2">Licznik stacji zmiękczania</th>
+            <th rowspan="2">Nr pracującej kolumny</th>
+            <th rowspan="2">Czystość pomieszczenia</th>
+            <th rowspan="2">Uwagi</th>
+            <th rowspan="2" class="adm-col" hidden></th>
+          </tr>
+          <tr>
+            <th>Zbiornik duży [%]</th><th>Zbiornik mały [%]</th><th>Magazyn [worki]</th>
+            <th>Zbiornik [%]</th><th>Magazyn [l]</th>
+            <th>Zbiornik [%]</th><th>Magazyn [l]</th>
+            <th>Pompa 1</th><th>Pompa 2</th><th>Pompa 3</th><th>Pompa 4</th><th>Zawór 1</th><th>Zawór 2</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="app-empty" id="empty" hidden>Brak wpisów w wybranym miesiącu. Pierwszy wpis pojawi się tu zaraz po wysłaniu formularza.</div>
+    </div>
+  </div>
+</section>
+
+<p class="app-footer">Narzędzie utworzone przy wsparciu AI. Dane wprowadzane przez pracowników działu technicznego – przed wykorzystaniem w decyzjach należy je zweryfikować.</p>
+<div class="alert alert-success app-toast" id="toast" role="status" hidden></div>
+
+{{ config|json_script:"elektryk-config" }}
+<script src="{% static 'js/elektryk-rejestr.js' %}"></script>
+{% endblock %}

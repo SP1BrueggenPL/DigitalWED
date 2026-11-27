@@ -1,0 +1,5 @@
+<nav class="app-tabs" aria-label="Widoki">
+  <a href="{% url 'elektryk:form' %}" class="{% if aktywna == 'formularz' %}active{% endif %}">📝 Formularz kontroli</a>
+  <a href="{% url 'elektryk:rejestr' %}" class="{% if aktywna == 'rejestr' %}active{% endif %}">📊 Rejestr wpisów
+    <span class="sidebar-badge" data-lowbadge aria-label="{{ low_count }} poniżej normy"{% if not low_count %} hidden{% endif %}>{{ low_count }}</span></a>
+</nav>

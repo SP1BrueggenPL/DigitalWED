@@ -1,0 +1,125 @@
+/* Obsługa kotłowni – kontrola dzienna elektryka (CD-00001499)
+   Warstwa aplikacji przeniesiona z prototypu; ładowana tylko na stronach tego procesu. */
+:root{
+  color-scheme: light;
+  --app-th-bg:#F0E8EB; --app-zebra:#FCF8F9; --app-hover:#FCF5F7; --app-sec-bg:#EDE2E5; --app-sec-hover:#E0D0D5;
+  --app-active-bg:#F5E6EA; --app-err-bg:#FDECEA; --app-ok-bg:#EAF6EB; --app-chip-ok-bg:#D6EFD8;
+  --app-accent:var(--brand-primary);
+}
+/* WED hard-coded light tints → tokens, so dark mode stays readable */
+.data-table th,.gas-table th{background:var(--app-th-bg);color:var(--app-accent)}
+.data-table tr:hover td{background:var(--app-hover)}
+.btn-secondary{background:var(--app-sec-bg);color:var(--app-accent)}
+.btn-secondary:hover{background:var(--app-sec-hover)}
+.sidebar-link:hover{background:var(--app-hover);color:var(--app-accent)}
+.sidebar-link.active{background:var(--app-active-bg);color:var(--app-accent)}
+.alert-error{background:var(--app-err-bg)}
+.alert-success{background:var(--app-ok-bg)}
+.status-chip--done{background:var(--app-chip-ok-bg)}
+.page-header-left h1,.process-card-title,.etap-label{color:var(--app-accent)}
+
+[hidden]{display:none!important}
+img{max-width:100%}
+:focus-visible{outline:3px solid var(--brand-gold);outline-offset:2px}
+/* wizard */
+.app-wiz{max-width:680px;margin:0 auto}
+.page-header-left .doc-number{margin-top:3px}
+.app-help{font-size:13.5px;color:var(--brand-muted);margin:0 0 16px;line-height:1.5}
+.etap-bar{gap:0}
+.etap-line{border-radius:2px;height:4px}
+.etap-count{font-size:12px;font-weight:700;color:var(--brand-muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.app-field + .app-field{margin-top:20px;padding-top:20px;border-top:1px solid var(--brand-border)}
+.form-group label{line-height:1.35}
+.app-labelrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.app-labelrow label{margin-bottom:0}
+.app-inrow{display:flex;gap:12px;align-items:stretch}
+.app-numwrap{position:relative;flex:1;min-width:0}
+.form-control.app-big{font-size:26px;font-weight:700;padding:12px 64px 12px 14px;min-height:58px;font-variant-numeric:tabular-nums}
+.app-unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:var(--brand-muted);pointer-events:none}
+.app-tank{width:44px;flex:none;border:1px solid var(--brand-border);border-radius:5px 5px 10px 10px;background:var(--app-zebra);position:relative;overflow:hidden}
+.app-tank-fill{position:absolute;left:0;right:0;bottom:0;height:0;background:linear-gradient(0deg,var(--brand-primary),var(--brand-red));transition:height .3s ease}
+.app-tank-ticks{position:absolute;inset:0;background:repeating-linear-gradient(to top,transparent 0 calc(25% - 1px),rgba(255,255,255,0.6) calc(25% - 1px) 25%)}
+.app-err{color:var(--brand-danger);font-size:12.5px;font-weight:700;margin-top:6px}
+.app-err:empty{display:none}
+.app-field .alert{margin:10px 0 0}
+.app-choices{display:grid;gap:10px}
+.app-choices.two{grid-template-columns:1fr 1fr}
+.btn.app-choice{justify-content:center;min-height:50px;font-size:15px}
+.btn.app-choice.is-no.btn-primary{background:var(--brand-red);color:#FFFFFF}
+.btn.app-choice.is-no.btn-primary:hover{background:var(--brand-red-dark)}
+.gas-table .row-label{font-size:14px}
+.gas-table td{vertical-align:middle}
+.gas-table .app-choices{grid-template-columns:1fr 1fr;min-width:150px}
+.app-nast{display:grid;gap:8px}
+.app-nast .form-control{font-size:17px;font-weight:700;padding:10px 12px;min-height:46px}
+.gas-table td.row-label{width:30%}
+.gas-table .btn.app-choice{min-height:44px;font-size:14px}
+.app-other{margin-top:12px}
+.form-control.app-text{font-size:16px;padding:12px 14px;min-height:50px}
+textarea.form-control.app-text{min-height:100px}
+.app-hint{font-size:12px;color:var(--brand-muted);margin:-2px 0 8px}
+.app-bigtime{font-size:clamp(40px,11vw,56px);font-weight:700;line-height:1;color:var(--app-accent);font-variant-numeric:tabular-nums;margin:6px 0 8px}
+.app-nav{display:flex;gap:12px;margin-top:20px}
+.app-nav .btn{min-height:50px;justify-content:center;font-size:15px}
+.app-nav .btn-primary{flex:1}
+.btn-primary:disabled{opacity:.5;cursor:default;transform:none}
+/* summary */
+.app-sum-sec{padding:16px 0;border-top:1px solid var(--brand-border)}
+.app-sum-sec:first-child{padding-top:0;border-top:0}
+.app-sum-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.app-sum-head .subsection-label{margin-bottom:0}
+.app-sum-sec .detail-grid{gap:4px 20px;grid-template-columns:1fr 1fr}
+.app-labelrow .badge{white-space:nowrap}
+.app-sum-sec .detail-field{margin-bottom:6px}
+.app-sum-sec .detail-value{font-weight:700}
+.app-low{color:var(--brand-danger)!important}
+.app-done-title{font-size:18px;font-weight:700;margin-bottom:2px}
+.alert .btn{margin-top:10px}
+/* register */
+.app-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.app-tools .form-control{width:auto;min-height:38px}
+.process-grid{margin-bottom:24px}
+.process-card:hover{transform:none}
+.app-stock-val{font-size:28px;line-height:1.15;font-variant-numeric:tabular-nums}
+.process-card.app-low-card{background:var(--brand-red);border-color:var(--brand-red);box-shadow:var(--shadow-md)}
+.process-card.app-low-card .process-card-bar{background:var(--brand-red-dark)}
+.process-card.app-low-card .process-card-num,
+.process-card.app-low-card .process-card-title,
+.process-card.app-low-card .process-card-desc{color:#FFFFFF}
+.process-card.app-low-card .process-card-footer{background:var(--brand-red-dark);border-top-color:var(--brand-red-dark);color:#FFFFFF}
+.process-card-footer{background:var(--app-active-bg)}
+.app-chip-low{background:#FFFFFF;color:var(--brand-red-dark)}
+.card + .card{margin-top:24px}
+.card-header .badge-count{margin-left:auto}
+.app-tablewrap{overflow-x:auto}
+.data-table.app-reg{min-width:1500px;font-size:13.5px;border-collapse:separate;border-spacing:0}
+.app-reg th,.app-reg td{text-align:center;padding:10px 12px;border-right:1px solid var(--brand-border);font-variant-numeric:tabular-nums}
+.app-reg th:last-child,.app-reg td:last-child{border-right:0}
+.app-reg thead tr:first-child th[colspan]{border-bottom:1px solid var(--brand-border)}
+.app-reg tbody tr:nth-child(even) td{background:var(--app-zebra)}
+.app-reg tbody tr:hover td{background:var(--app-hover)}
+.app-reg .sticky{position:sticky;left:0;z-index:1;background:var(--brand-surface);font-weight:700;color:var(--app-accent)}
+.app-reg th.sticky{background:var(--app-th-bg);z-index:2}
+.app-reg .wrap{text-align:left;min-width:160px}
+.app-reg td.app-cell-low,.app-reg tbody tr:nth-child(even) td.app-cell-low,.app-reg tbody tr:hover td.app-cell-low{background:var(--brand-red)!important;color:#FFFFFF!important;font-weight:700}
+.app-reg .app-ok{color:var(--brand-muted)}
+.app-reg .badge-count{margin-left:0}
+.app-del{background:none;border:0;color:var(--brand-danger);cursor:pointer;font-size:12px;font-weight:700;font-family:inherit}
+.app-status{font-size:12.5px;color:var(--brand-muted);margin:0 0 12px}
+.app-empty{padding:32px 20px;text-align:center;color:var(--brand-muted);font-size:13.5px}
+.app-settings{max-width:680px}
+.app-settings p{font-size:13.5px;color:var(--brand-muted);margin-bottom:12px}
+.app-row{display:flex;gap:10px;flex-wrap:wrap}
+.app-row .form-control{flex:1;min-width:220px}
+.app-footer{font-size:12px;color:var(--brand-muted);margin-top:32px}
+.app-toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:200;box-shadow:var(--shadow-md);margin:0;font-weight:700;background:var(--brand-surface)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+
+/* zakładki Formularz / Rejestr */
+.app-tabs{display:flex;border-bottom:2px solid var(--brand-border);margin-bottom:20px}
+.app-tabs a{display:flex;align-items:center;gap:8px;padding:10px 20px;font-size:13.5px;font-weight:700;color:var(--brand-muted);text-decoration:none;border-bottom:3px solid transparent;margin-bottom:-2px}
+.app-tabs a:hover{color:var(--brand-text)}
+.app-tabs a.active{color:var(--brand-primary);border-bottom-color:var(--brand-primary)}
+.app-tabs .sidebar-badge{margin-left:0}
+@media (max-width:900px){.app-tabs a{flex:1;justify-content:center;padding:12px 10px}}
+@media (max-width:520px){.main{padding:16px}.page-header{flex-direction:column}}

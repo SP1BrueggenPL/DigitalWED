@@ -7,6 +7,8 @@ from django.core import signing
 from django import forms
 from .models import UserProfile
 from .backends import ChipAuthBackend
+from .permissions import GROUP_MECHANICY, GROUP_ELEKTRYCY
+from django.utils.http import url_has_allowed_host_and_scheme
 
 
 class ZmienHasloForm(forms.Form):
@@ -36,16 +38,32 @@ ALL_PROCESSES = [
         'doc_number': 'CD-00001498-4',
         'description': 'Formularz kontroli stanu technicznego kotłowni: zapasy surowców, urządzenia kotłowe, analiza laboratoryjna wody.',
         'url': 'kotlownia:list',
-        'group': 'Kotłownia',
+        'group': GROUP_MECHANICY,
         'icon': '🔥',
     },
+    {
+        'id': 'elektryk',
+        'name': 'Obsługa kotłowni – kontrola dzienna elektryka',
+        'doc_number': 'CD-00001499',
+        'description': 'Dzienna kontrola kotłowni przez elektryka: sól zmiękczająca, Eurocept, kolektor C.O., liczniki oraz rejestr wpisów.',
+        'url': 'elektryk:form',
+        'group': GROUP_ELEKTRYCY,
+        'icon': '⚡',
+    },
 ]
+
+
+def _safe_next(request, url):
+    return bool(url) and url_has_allowed_host_and_scheme(url, allowed_hosts={request.get_host()})
 
 
 def chip_login_step1(request):
     """Krok 1: wpisanie numeru chip."""
     if request.user.is_authenticated:
         return redirect('dashboard')
+    next_url = request.GET.get('next', '')
+    if _safe_next(request, next_url):
+        request.session['login_next'] = next_url
     error = None
     if request.method == 'POST':
         chip = request.POST.get('chip_number', '').strip()
@@ -96,8 +114,12 @@ def chip_login_step2(request):
         if not error:
             user = ChipAuthBackend().authenticate(request, chip_number=chip, auth_code=kod)
             if user:
+                next_url = request.session.get('login_next') or request.POST.get('next', '')
                 login(request, user, backend='core.backends.ChipAuthBackend')
                 request.session.pop('login_chip', None)
+                request.session.pop('login_next', None)
+                if _safe_next(request, next_url):
+                    return redirect(next_url)
                 return redirect('dashboard')
             error = 'Nieprawidłowy kod autoryzacyjny.'
 
@@ -105,6 +127,7 @@ def chip_login_step2(request):
         'first_time': first_time,
         'error': error,
         'chip_token': signing.dumps(chip, salt=CHIP_TOKEN_SALT),
+        'next': request.session.get('login_next', '') or request.POST.get('next', ''),
     })
 
 

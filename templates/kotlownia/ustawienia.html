@@ -1,21 +1,20 @@
 {% extends 'base.html' %}
-{% block title %}Ustawienia kotłowni{% endblock %}
+{% block title %}{{ naglowek|default:'Ustawienia kotłowni' }}{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div class="page-header-left">
-    <h1>Ustawienia kotłowni</h1>
-    <div class="doc-number">CD-00001498-4 · Konfiguracja</div>
+    <h1>{{ naglowek|default:'Ustawienia kotłowni' }}</h1>
+    <div class="doc-number">{{ doc_number|default:'CD-00001498-4' }} · Konfiguracja</div>
   </div>
-  <a href="{% url 'kotlownia:list' %}" class="btn btn-secondary">← Wróć</a>
+  <a href="{% url back_url|default:'kotlownia:list' %}" class="btn btn-secondary">← Wróć</a>
 </div>
 
 <div class="card form-section" style="max-width:600px">
   <div class="card-header"><span class="section-id">EMAIL</span><h3>Odbiorcy powiadomień e-mail</h3></div>
   <div class="card-body">
     <p style="font-size:13px;color:var(--brand-muted);margin-bottom:20px">
-      Po zakończeniu Etapu 2 (laboratorium) e-mail z wynikami jest wysyłany automatycznie
-      do wszystkich poniższych adresów – zarówno gdy wyniki są w normie, jak i gdy wystąpią odchyłki.
+      {{ opis|default:'Po zatwierdzeniu Etapu 1 oraz po zakończeniu Etapu 2 (laboratorium) e-mail jest wysyłany automatycznie do wszystkich poniższych adresów – zarówno gdy wyniki są w normie, jak i gdy wystąpią odchyłki.' }}
     </p>
     <form method="post" novalidate id="ustawienia-form">
       {% csrf_token %}

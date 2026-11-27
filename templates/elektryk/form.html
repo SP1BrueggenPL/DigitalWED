@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Kontrola dzienna elektryka{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/elektryk.css' %}">{% endblock %}
+
+{% block content %}
+{% include 'elektryk/_tabs.html' with aktywna='formularz' %}
+
+<section id="view-formularz" aria-live="polite">
+  {% csrf_token %}
+  <div class="app-wiz" id="wiz"></div>
+</section>
+
+<p class="app-footer">Narzędzie utworzone przy wsparciu AI. Dane wprowadzane przez pracowników działu technicznego – przed wykorzystaniem w decyzjach należy je zweryfikować.</p>
+<div class="alert alert-success app-toast" id="toast" role="status" hidden></div>
+
+{{ config|json_script:"elektryk-config" }}
+<script src="{% static 'js/elektryk-form.js' %}"></script>
+{% endblock %}
