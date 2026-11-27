@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Import użytkowników{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-left">
+    <h1>Import użytkowników z Excela</h1>
+    <div class="doc-number">Zbiorcze dodawanie kont z pliku .xlsx</div>
+  </div>
+  <a href="{% url 'user_list' %}" class="btn btn-secondary">← Wróć</a>
+</div>
+
+{% if wynik %}
+<div class="card" style="margin-bottom:24px">
+  <div class="card-header"><h3>Wynik importu</h3></div>
+  <div class="card-body">
+    <p style="margin-bottom:12px">
+      <span class="status-chip status-chip--done">Dodano: {{ added|length }}</span>
+      <span class="status-chip status-chip--info">Pominięto (już istnieją): {{ skipped|length }}</span>
+      <span class="status-chip status-chip--warn">Błędy: {{ errors|length }}</span>
+    </p>
+    {% if errors %}
+    <div class="alert alert-error" style="margin-bottom:12px">Wiersze z błędami nie zostały zaimportowane. Popraw je w pliku i wgraj plik ponownie – osoby już dodane zostaną pominięte.</div>
+    {% endif %}
+    {% if added or skipped or errors %}
+    <table class="data-table">
+      <thead><tr><th>Wiersz</th><th>Osoba</th><th>Status</th><th>Szczegóły</th></tr></thead>
+      <tbody>
+        {% for n, kto, opis in errors %}<tr><td>{{ n }}</td><td>{{ kto|default:"—" }}</td><td><span class="status-chip status-chip--warn">Błąd</span></td><td>{{ opis }}</td></tr>{% endfor %}
+        {% for n, kto, opis in added %}<tr><td>{{ n }}</td><td>{{ kto }}</td><td><span class="status-chip status-chip--done">Dodano</span></td><td>{{ opis }}</td></tr>{% endfor %}
+        {% for n, kto, opis in skipped %}<tr><td>{{ n }}</td><td>{{ kto }}</td><td><span class="status-chip status-chip--info">Pominięto</span></td><td>{{ opis }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p>Plik nie zawierał żadnych wierszy z danymi.</p>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<div class="card form-section" style="max-width:720px">
+  <div class="card-body">
+    <ol style="margin:0 0 16px 18px;line-height:1.7">
+      <li><a href="{% url 'user_import_template' %}">Pobierz szablon Excel</a> i wypełnij: Imię, Nazwisko, E-mail, Chip, Grupy.</li>
+      <li>Grupy oddziel średnikiem lub przecinkiem. Dostępne: {% for g in grupy %}<strong>{{ g }}</strong>{% if not forloop.last %}, {% endif %}{% endfor %}.</li>
+      <li>Wgraj plik. Osoby, których numer chip lub e-mail już jest w aplikacji, zostaną pominięte.</li>
+    </ol>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="file" name="plik" accept=".xlsx" class="form-control" required style="margin-bottom:16px">
+      <button type="submit" class="btn btn-primary">Importuj</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
